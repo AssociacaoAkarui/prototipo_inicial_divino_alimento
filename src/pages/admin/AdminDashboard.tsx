@@ -76,10 +76,10 @@ const AdminDashboard = () => {
       badge: null
     },
     {
-      title: 'Configurações',
-      description: 'Configurações do sistema',
-      icon: Settings,
-      route: '/admin/config',
+      title: 'Dados Pessoais',
+      description: 'Atualize seus dados pessoais',
+      icon: Users,
+      route: '/usuario/1',
       badge: null
     }
   ];
