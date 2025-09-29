@@ -5,10 +5,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import InputMask from 'react-input-mask';
+import { 
+  validarCelular, 
+  validarChavePix, 
+  validarAgencia, 
+  validarConta 
+} from '@/utils/validation';
 
 const UsuarioDados = () => {
   const { id } = useParams();
@@ -18,8 +26,11 @@ const UsuarioDados = () => {
   const [formData, setFormData] = useState({
     nomeCompleto: 'João da Silva',
     nomeFantasia: 'João Silva',
-    celular: '(11) 98765-4321',
-    informacoesPagamento: 'Banco: Itaú\nAgência: 1234\nConta: 56789-0\nChave PIX: joao@email.com',
+    celular: '11987654321',
+    banco: 'Itaú',
+    agencia: '1234',
+    conta: '56789-0',
+    chavePix: 'joao@email.com',
     email: 'joao.silva@email.com',
     aceitePolitica: true,
     perfilFornecedor: true,
@@ -47,6 +58,33 @@ const UsuarioDados = () => {
 
     if (!formData.celular.trim()) {
       newErrors.celular = 'Celular é obrigatório';
+    } else if (!validarCelular(formData.celular)) {
+      newErrors.celular = 'Informe um celular válido no formato (11) 95555-9999.';
+    }
+
+    if (!formData.banco) {
+      newErrors.banco = 'Banco é obrigatório';
+    }
+
+    if (!formData.agencia.trim()) {
+      newErrors.agencia = 'Agência é obrigatória';
+    } else if (!validarAgencia(formData.agencia)) {
+      newErrors.agencia = 'Agência deve ter 4 ou 5 dígitos.';
+    }
+
+    if (!formData.conta.trim()) {
+      newErrors.conta = 'Conta é obrigatória';
+    } else if (!validarConta(formData.conta)) {
+      newErrors.conta = 'Conta deve estar no formato 123456-7.';
+    }
+
+    if (!formData.chavePix.trim()) {
+      newErrors.chavePix = 'Chave PIX é obrigatória';
+    } else {
+      const validacao = validarChavePix(formData.chavePix);
+      if (!validacao.valido) {
+        newErrors.chavePix = validacao.mensagem || 'Chave PIX inválida';
+      }
     }
 
     if (!formData.aceitePolitica) {
@@ -135,29 +173,48 @@ const UsuarioDados = () => {
               <Label htmlFor="celular">
                 Celular <span className="text-destructive">*</span>
               </Label>
-              <Input
-                id="celular"
+              <InputMask
+                mask="(99) 99999-9999"
                 value={formData.celular}
-                onChange={(e) => handleInputChange('celular', e.target.value)}
-                placeholder="(00) 00000-0000"
-                className={errors.celular ? 'border-destructive' : ''}
-              />
+                onChange={(e) => handleInputChange('celular', e.target.value.replace(/\D/g, ''))}
+              >
+                {/* @ts-ignore */}
+                {(inputProps: any) => (
+                  <Input
+                    {...inputProps}
+                    id="celular"
+                    type="tel"
+                    placeholder="(11) 95555-9999"
+                    className={errors.celular ? 'border-destructive' : ''}
+                    inputMode="numeric"
+                  />
+                )}
+              </InputMask>
               {errors.celular && (
                 <p className="text-sm text-destructive">{errors.celular}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="email">E-mail</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Seu e-mail não pode ser alterado</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Input
                 id="email"
                 value={formData.email}
                 disabled
                 className="bg-muted cursor-not-allowed"
               />
-              <p className="text-xs text-muted-foreground">
-                O e-mail não pode ser alterado
-              </p>
             </div>
           </CardContent>
         </Card>
@@ -167,17 +224,104 @@ const UsuarioDados = () => {
             <CardTitle>Informações para Pagamento</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="informacoesPagamento">
-                Conta Bancária, Chave PIX, etc.
-              </Label>
-              <Textarea
-                id="informacoesPagamento"
-                value={formData.informacoesPagamento}
-                onChange={(e) => handleInputChange('informacoesPagamento', e.target.value)}
-                placeholder="Digite as informações para recebimento de pagamentos"
-                className="min-h-[120px]"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="banco">
+                  Banco <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={formData.banco}
+                  onValueChange={(value) => handleInputChange('banco', value)}
+                >
+                  <SelectTrigger 
+                    id="banco"
+                    className={errors.banco ? 'border-destructive' : ''}
+                  >
+                    <SelectValue placeholder="Selecione o banco" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Itaú">Itaú</SelectItem>
+                    <SelectItem value="Bradesco">Bradesco</SelectItem>
+                    <SelectItem value="Santander">Santander</SelectItem>
+                    <SelectItem value="Caixa">Caixa Econômica Federal</SelectItem>
+                    <SelectItem value="Banco do Brasil">Banco do Brasil</SelectItem>
+                    <SelectItem value="Nubank">Nubank</SelectItem>
+                    <SelectItem value="Inter">Inter</SelectItem>
+                    <SelectItem value="Sicredi">Sicredi</SelectItem>
+                    <SelectItem value="Sicoob">Sicoob</SelectItem>
+                    <SelectItem value="Outras">Outras</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.banco && (
+                  <p className="text-sm text-destructive">{errors.banco}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="agencia">
+                  Agência <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="agencia"
+                  type="text"
+                  inputMode="numeric"
+                  value={formData.agencia}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+                    handleInputChange('agencia', value);
+                  }}
+                  placeholder="1234"
+                  className={errors.agencia ? 'border-destructive' : ''}
+                  maxLength={5}
+                />
+                {errors.agencia && (
+                  <p className="text-sm text-destructive">{errors.agencia}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="conta">
+                  Conta <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="conta"
+                  type="text"
+                  inputMode="numeric"
+                  value={formData.conta}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/[^\d-]/g, '');
+                    // Limitar a 12 dígitos + hífen + 1 dígito
+                    const match = value.match(/^(\d{0,12})-?(\d?)$/);
+                    if (match) {
+                      value = match[1] + (match[2] ? '-' + match[2] : '');
+                    }
+                    handleInputChange('conta', value);
+                  }}
+                  placeholder="56789-0"
+                  className={errors.conta ? 'border-destructive' : ''}
+                  maxLength={14}
+                />
+                {errors.conta && (
+                  <p className="text-sm text-destructive">{errors.conta}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="chavePix">
+                  Chave PIX <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="chavePix"
+                  type="text"
+                  value={formData.chavePix}
+                  onChange={(e) => handleInputChange('chavePix', e.target.value)}
+                  placeholder="joao@email.com"
+                  className={errors.chavePix ? 'border-destructive' : ''}
+                />
+                {errors.chavePix && (
+                  <p className="text-sm text-destructive">{errors.chavePix}</p>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -273,6 +417,15 @@ const UsuarioDados = () => {
           <Button
             onClick={handleSave}
             className="bg-primary hover:bg-primary/90"
+            disabled={
+              !formData.nomeCompleto.trim() ||
+              !validarCelular(formData.celular) ||
+              !formData.banco ||
+              !validarAgencia(formData.agencia) ||
+              !validarConta(formData.conta) ||
+              !validarChavePix(formData.chavePix).valido ||
+              !formData.aceitePolitica
+            }
           >
             Salvar
           </Button>
