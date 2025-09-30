@@ -45,7 +45,7 @@ const AdminDashboard = () => {
       title: 'Gestão de Preços',
       description: 'Definir preços específicos por mercado',
       icon: DollarSign,
-      route: '/admin/precos/mc',
+      route: '/admin/precos',
       badge: null
     },
     {

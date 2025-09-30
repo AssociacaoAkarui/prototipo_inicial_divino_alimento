@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { ArrowLeft, Plus, Store, MapPin, Package, Trash2, Edit, Save, Search, Filter, User, DollarSign } from 'lucide-react';
+import { ArrowLeft, Plus, Store, MapPin, Package, Trash2, Edit, Save, Search, Filter, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -418,20 +418,7 @@ const AdminMercados = () => {
                       </div>
                     </div>
                     
-                    <div className="flex flex-col space-y-2 pt-3 border-t">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/admin/precos/${market.id}`);
-                        }}
-                      >
-                        <DollarSign className="w-3 h-3 mr-1" />
-                        Preços
-                      </Button>
-                      <div className="flex space-x-2">
+                    <div className="flex space-x-2 pt-3 border-t">
                         <Button
                           variant="outline"
                           size="sm"
@@ -458,7 +445,6 @@ const AdminMercados = () => {
                           Excluir
                         </Button>
                       </div>
-                    </div>
                   </CardContent>
                 </Card>
               ))}
