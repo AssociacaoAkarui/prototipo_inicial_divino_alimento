@@ -137,7 +137,7 @@ export default function AdminPrecos() {
   };
 
   const handleCancel = () => {
-    navigate("/admin/mercados");
+    navigate("/admin/precos");
   };
 
   if (!mercado) {
@@ -158,19 +158,25 @@ export default function AdminPrecos() {
   }
 
   return (
-    <ResponsiveLayout>
+    <ResponsiveLayout
+      leftHeaderContent={
+        <Button 
+          variant="ghost" 
+          size="icon-sm"
+          onClick={() => navigate("/admin/precos")}
+          className="text-primary-foreground hover:bg-primary-hover"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+      }
+    >
       <div className="space-y-6 pb-20">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/admin/mercados")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+        <div className="flex flex-col">
           <div>
-            <h1 className="text-3xl font-bold">Gestão de Preços – {mercado.nome}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
+              Gestão de Preços – {mercado.nome}
+            </h1>
             <p className="text-muted-foreground">
               Defina preços específicos para este mercado com base nos produtos comercializáveis cadastrados
             </p>

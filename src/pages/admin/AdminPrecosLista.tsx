@@ -27,19 +27,23 @@ export default function AdminPrecosLista() {
   }, [searchTerm]);
 
   return (
-    <ResponsiveLayout>
+    <ResponsiveLayout
+      leftHeaderContent={
+        <Button 
+          variant="ghost" 
+          size="icon-sm"
+          onClick={() => navigate('/admin/dashboard')}
+          className="text-primary-foreground hover:bg-primary-hover"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+      }
+    >
       <div className="space-y-6 pb-20">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/admin/dashboard")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+        <div className="flex flex-col">
           <div>
-            <h1 className="text-3xl font-bold">Lista de Mercados – Gestão de Preços</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">Lista de Mercados – Gestão de Preços</h1>
             <p className="text-muted-foreground">
               Selecione um mercado para definir preços específicos
             </p>

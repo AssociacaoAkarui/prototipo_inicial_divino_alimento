@@ -11,7 +11,7 @@ import {
   Plus, 
   Edit2, 
   Trash2,
-  LogOut
+  ArrowLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -96,15 +96,14 @@ const UsuarioIndex = () => {
 
   return (
     <ResponsiveLayout 
-      headerContent={
+      leftHeaderContent={
         <Button 
           variant="ghost" 
-          size="sm"
-          onClick={handleLogout}
-          className="focus-ring text-primary-foreground hover:bg-primary-hover"
+          size="icon-sm"
+          onClick={() => navigate(-1)}
+          className="text-primary-foreground hover:bg-primary-hover"
         >
-          <LogOut className="w-4 h-4 mr-1" />
-          <span className="hidden md:inline">Sair</span>
+          <ArrowLeft className="w-4 h-4" />
         </Button>
       }
     >

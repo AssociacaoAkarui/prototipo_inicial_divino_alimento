@@ -119,15 +119,14 @@ const Usuario = () => {
 
   return (
     <ResponsiveLayout
-      headerContent={
+      leftHeaderContent={
         <Button 
           variant="ghost" 
-          size="sm"
+          size="icon-sm"
           onClick={handleCancel}
-          className="focus-ring text-primary-foreground hover:bg-primary-hover"
+          className="text-primary-foreground hover:bg-primary-hover"
         >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          <span className="hidden md:inline">Voltar</span>
+          <ArrowLeft className="w-4 h-4" />
         </Button>
       }
     >
