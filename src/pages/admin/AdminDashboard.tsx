@@ -14,7 +14,8 @@ import {
   Users,
   TrendingUp,
   Calendar,
-  DollarSign
+  DollarSign,
+  FolderTree
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -60,6 +61,13 @@ const AdminDashboard = () => {
       description: 'Controle de estoque e disponibilidade',
       icon: Warehouse,
       route: '/admin/estoque',
+      badge: null
+    },
+    {
+      title: 'Categorias de Produtos',
+      description: 'Gerenciar categorias dos produtos comercializados',
+      icon: FolderTree,
+      route: '/admin/categorias',
       badge: null
     },
     {
