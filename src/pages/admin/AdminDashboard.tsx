@@ -58,7 +58,7 @@ const AdminDashboard = () => {
       title: 'Usuários',
       description: 'Gerenciar perfis e acessos',
       icon: Users,
-      route: '/usuarios',
+      route: '/usuario-index',
       badge: null
     },
     {
