@@ -13,7 +13,8 @@ import {
   Settings,
   Users,
   TrendingUp,
-  Calendar
+  Calendar,
+  DollarSign
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -38,6 +39,13 @@ const AdminDashboard = () => {
       description: 'Gerenciar mercados e pontos de venda',
       icon: Store,
       route: '/admin/mercados',
+      badge: null
+    },
+    {
+      title: 'Gestão de Preços',
+      description: 'Definir preços específicos por mercado',
+      icon: DollarSign,
+      route: '/admin/precos/mc',
       badge: null
     },
     {

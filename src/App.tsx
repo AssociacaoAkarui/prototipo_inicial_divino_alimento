@@ -30,6 +30,7 @@ import ProdutosVencidos from "./pages/fornecedor/ProdutosVencidos";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminMercados from "./pages/admin/AdminMercados";
+import AdminPrecos from "./pages/admin/AdminPrecos";
 import AdminProdutos from "./pages/admin/AdminProdutos";
 import AdminEstoque from "./pages/admin/AdminEstoque";
 import AdminConfig from "./pages/admin/AdminConfig";
@@ -88,6 +89,7 @@ const App = () => (
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/mercados" element={<AdminMercados />} />
+          <Route path="/admin/precos/:id" element={<AdminPrecos />} />
           <Route path="/admin/produtos" element={<AdminProdutos />} />
           <Route path="/admin/estoque" element={<AdminEstoque />} />
           <Route path="/admin/config" element={<AdminConfig />} />

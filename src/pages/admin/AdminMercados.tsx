@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { ArrowLeft, Plus, Store, MapPin, Package, Trash2, Edit, Save, Search, Filter, User } from 'lucide-react';
+import { ArrowLeft, Plus, Store, MapPin, Package, Trash2, Edit, Save, Search, Filter, User, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -418,32 +418,46 @@ const AdminMercados = () => {
                       </div>
                     </div>
                     
-                    <div className="flex space-x-2 pt-3 border-t">
+                    <div className="flex flex-col space-y-2 pt-3 border-t">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1"
+                        className="w-full"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedMarket(market);
-                          startEditMarket(market);
+                          navigate(`/admin/precos/${market.id}`);
                         }}
                       >
-                        <Edit className="w-3 h-3 mr-1" />
-                        Editar
+                        <DollarSign className="w-3 h-3 mr-1" />
+                        Preços
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 text-destructive hover:text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          confirmDeleteMarket(market.id);
-                        }}
-                      >
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Excluir
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedMarket(market);
+                            startEditMarket(market);
+                          }}
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Editar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 text-destructive hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            confirmDeleteMarket(market.id);
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Excluir
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
