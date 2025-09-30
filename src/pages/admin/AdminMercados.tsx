@@ -5,9 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
 import { ArrowLeft, Plus, Store, MapPin, Package, Trash2, Edit, Save, Search, Filter, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -34,7 +36,19 @@ const marketTypeOptions = [
   { value: 'venda_direta', label: 'Venda Direta' }
 ];
 
-const mockMarkets = [
+type MarketType = {
+  id: number;
+  name: string;
+  deliveryPoints: string[];
+  products: number[];
+  totalProducts: number;
+  type: string;
+  administratorId: number;
+  administrativeFee: number | null;
+  status: 'ativo' | 'inativo';
+};
+
+const mockMarkets: MarketType[] = [
   {
     id: 1,
     name: 'Mercado Central',
@@ -43,7 +57,8 @@ const mockMarkets = [
     totalProducts: 3,
     type: 'cesta',
     administratorId: 1,
-    administrativeFee: 5
+    administrativeFee: 5,
+    status: 'ativo'
   },
   {
     id: 2,
@@ -53,24 +68,28 @@ const mockMarkets = [
     totalProducts: 2,
     type: 'venda_direta',
     administratorId: 2,
-    administrativeFee: null
+    administrativeFee: null,
+    status: 'ativo'
   }
 ];
 
 const AdminMercados = () => {
-  const [markets, setMarkets] = useState(mockMarkets);
-  const [selectedMarket, setSelectedMarket] = useState<typeof mockMarkets[0] | null>(null);
+  const [markets, setMarkets] = useState<MarketType[]>(mockMarkets);
+  const [selectedMarket, setSelectedMarket] = useState<MarketType | null>(null);
   const [isEditingMarket, setIsEditingMarket] = useState(false);
-  const [editData, setEditData] = useState<typeof mockMarkets[0] | null>(null);
+  const [editData, setEditData] = useState<MarketType | null>(null);
   const [newMarket, setNewMarket] = useState({ 
     name: '', 
     deliveryPoints: [''], 
     products: [] as number[],
     type: '',
     administratorId: null as number | null,
-    administrativeFee: null as number | null
+    administrativeFee: null as number | null,
+    status: 'ativo' as 'ativo' | 'inativo'
   });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [marketToDelete, setMarketToDelete] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -174,10 +193,48 @@ const AdminMercados = () => {
   );
 
   const saveMarket = () => {
-    if (!newMarket.name || newMarket.deliveryPoints.some(point => !point.trim()) || !newMarket.type || !newMarket.administratorId) {
+    // Validações
+    if (!newMarket.name.trim()) {
       toast({
         title: "Erro",
-        description: "Preencha todos os campos obrigatórios",
+        description: "Nome do mercado não pode estar vazio",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!newMarket.type) {
+      toast({
+        title: "Erro",
+        description: "Selecione o tipo de mercado",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!newMarket.administratorId) {
+      toast({
+        title: "Erro",
+        description: "Selecione o administrador responsável",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const validDeliveryPoints = newMarket.deliveryPoints.filter(point => point.trim());
+    if (validDeliveryPoints.length === 0) {
+      toast({
+        title: "Erro",
+        description: "Ao menos um ponto de entrega deve estar vinculado",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (newMarket.administrativeFee !== null && (newMarket.administrativeFee < 0 || newMarket.administrativeFee > 100)) {
+      toast({
+        title: "Erro",
+        description: "Taxa administrativa deve estar entre 0 e 100%",
         variant: "destructive"
       });
       return;
@@ -186,23 +243,48 @@ const AdminMercados = () => {
     const market = {
       id: markets.length + 1,
       name: newMarket.name,
-      deliveryPoints: newMarket.deliveryPoints.filter(point => point.trim()),
+      deliveryPoints: validDeliveryPoints,
       products: newMarket.products,
       totalProducts: newMarket.products.length,
       type: newMarket.type,
       administratorId: newMarket.administratorId,
-      administrativeFee: newMarket.administrativeFee
+      administrativeFee: newMarket.administrativeFee,
+      status: newMarket.status
     };
 
     setMarkets([...markets, market]);
-    setNewMarket({ name: '', deliveryPoints: [''], products: [], type: '', administratorId: null, administrativeFee: null });
+    setNewMarket({ name: '', deliveryPoints: [''], products: [], type: '', administratorId: null, administrativeFee: null, status: 'ativo' });
     setIsDialogOpen(false);
-    setSelectedMarket(market); // Auto-select new market
+    setSelectedMarket(market);
     
     toast({
       title: "Sucesso",
       description: "Mercado criado com sucesso",
     });
+  };
+
+  const confirmDeleteMarket = (marketId: number) => {
+    setMarketToDelete(marketId);
+    setDeleteDialogOpen(true);
+  };
+
+  const deleteMarket = () => {
+    if (marketToDelete === null) return;
+
+    setMarkets(prev => prev.filter(m => m.id !== marketToDelete));
+    
+    if (selectedMarket?.id === marketToDelete) {
+      setSelectedMarket(null);
+      setIsEditingMarket(false);
+    }
+
+    toast({
+      title: "Sucesso",
+      description: "Mercado excluído com sucesso",
+    });
+
+    setDeleteDialogOpen(false);
+    setMarketToDelete(null);
   };
 
   return (
@@ -292,36 +374,76 @@ const AdminMercados = () => {
               {filteredMarkets.map((market) => (
                 <Card 
                   key={market.id} 
-                  className={`cursor-pointer transition-all hover:shadow-md ${
+                  className={`transition-all hover:shadow-md ${
                     selectedMarket?.id === market.id 
                       ? 'ring-2 ring-primary bg-primary/5 border-primary' 
                       : 'hover:border-primary/30'
                   }`}
-                  onClick={() => setSelectedMarket(market)}
                 >
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-foreground truncate">
-                          {market.name}
-                        </h3>
-                        <div className="flex items-center space-x-1 mt-1">
-                          <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                          <span className="text-xs text-muted-foreground">
-                            {market.deliveryPoints.length} pontos
-                          </span>
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => setSelectedMarket(market)}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-foreground truncate">
+                            {market.name}
+                          </h3>
+                          <div className="flex items-center space-x-1 mt-1">
+                            <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                            <span className="text-xs text-muted-foreground">
+                              {market.deliveryPoints.length} pontos
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-1 mt-1">
+                            <Package className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                            <span className="text-xs text-muted-foreground">
+                              {market.totalProducts} produtos
+                            </span>
+                          </div>
+                          <div className="mt-2">
+                            <Badge 
+                              variant={market.status === 'ativo' ? 'default' : 'secondary'}
+                              className={market.status === 'ativo' ? 'bg-success text-white' : ''}
+                            >
+                              {market.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                            </Badge>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-1 mt-1">
-                          <Package className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                          <span className="text-xs text-muted-foreground">
-                            {market.totalProducts} produtos
-                          </span>
-                        </div>
+                        
+                        {selectedMarket?.id === market.id && (
+                          <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
+                        )}
                       </div>
-                      
-                      {selectedMarket?.id === market.id && (
-                        <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0"></div>
-                      )}
+                    </div>
+                    
+                    <div className="flex space-x-2 pt-3 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedMarket(market);
+                          startEditMarket(market);
+                        }}
+                      >
+                        <Edit className="w-3 h-3 mr-1" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          confirmDeleteMarket(market.id);
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        Excluir
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -357,13 +479,22 @@ const AdminMercados = () => {
                 </div>
                 
                 {!isEditingMarket ? (
-                  <Button 
-                    variant="outline" 
-                    onClick={() => startEditMarket(selectedMarket)}
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Editar
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => startEditMarket(selectedMarket)}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Editar
+                    </Button>
+                    <Button 
+                      variant="destructive"
+                      onClick={() => confirmDeleteMarket(selectedMarket.id)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Excluir
+                    </Button>
+                  </div>
                 ) : (
                   <div className="flex space-x-2">
                     <Button 
@@ -483,12 +614,39 @@ const AdminMercados = () => {
 
                     <div>
                       <Label>Status</Label>
-                      <div className="mt-2 p-3 bg-success/10 rounded-lg border">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-success rounded-full"></div>
-                          <span className="text-sm font-medium text-success">Ativo</span>
+                      {isEditingMarket ? (
+                        <RadioGroup
+                          value={editData?.status || 'ativo'}
+                          onValueChange={(value: 'ativo' | 'inativo') => 
+                            setEditData(prev => prev ? { ...prev, status: value } : null)
+                          }
+                          className="mt-2"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="ativo" id="edit-status-ativo" />
+                            <Label htmlFor="edit-status-ativo" className="cursor-pointer">Ativo</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="inativo" id="edit-status-inativo" />
+                            <Label htmlFor="edit-status-inativo" className="cursor-pointer">Inativo</Label>
+                          </div>
+                        </RadioGroup>
+                      ) : (
+                        <div className={`mt-2 p-3 rounded-lg border ${
+                          selectedMarket.status === 'ativo' ? 'bg-success/10' : 'bg-muted/30'
+                        }`}>
+                          <div className="flex items-center space-x-2">
+                            <div className={`w-2 h-2 rounded-full ${
+                              selectedMarket.status === 'ativo' ? 'bg-success' : 'bg-muted-foreground'
+                            }`}></div>
+                            <span className={`text-sm font-medium ${
+                              selectedMarket.status === 'ativo' ? 'text-success' : 'text-muted-foreground'
+                            }`}>
+                              {selectedMarket.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                            </span>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
 
@@ -751,9 +909,29 @@ const AdminMercados = () => {
                     placeholder="Ex: 5.0"
                     min="0"
                     max="100"
-                    step="0.1"
+                    step="0.01"
                     className="mt-2"
                   />
+                </div>
+
+                <div>
+                  <Label>Status *</Label>
+                  <RadioGroup
+                    value={newMarket.status}
+                    onValueChange={(value: 'ativo' | 'inativo') => 
+                      setNewMarket(prev => ({ ...prev, status: value }))
+                    }
+                    className="mt-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="ativo" id="status-ativo" />
+                      <Label htmlFor="status-ativo" className="cursor-pointer">Ativo</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="inativo" id="status-inativo" />
+                      <Label htmlFor="status-inativo" className="cursor-pointer">Inativo</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
               </div>
 
@@ -842,6 +1020,27 @@ const AdminMercados = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja realmente excluir este mercado? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={deleteMarket}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ResponsiveLayout>
   );
 };
