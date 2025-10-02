@@ -71,6 +71,13 @@ const UsuarioIndex = () => {
       status: 'Ativo',
       perfis: ['Administrador']
     },
+    { 
+      id: '6', 
+      nomeCompleto: 'Fernanda Lima', 
+      email: 'fernanda@email.com', 
+      status: 'Ativo',
+      perfis: ['Administrador de Mercado']
+    },
   ];
 
   const filteredUsers = usuarios.filter(usuario => 
