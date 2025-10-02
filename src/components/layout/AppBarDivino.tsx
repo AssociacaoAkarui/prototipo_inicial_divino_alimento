@@ -32,7 +32,7 @@ export const AppBarDivino = ({ children, leftContent, className, showLoginButton
     // Detecta se está em rota de fornecedor e navega para a home apropriada
     if (location.pathname.startsWith('/fornecedor')) {
       navigate('/fornecedor/loja');
-    } else if (location.pathname.startsWith('/admin')) {
+    } else if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/usuario')) {
       navigate('/admin/dashboard');
     } else {
       navigate('/');
