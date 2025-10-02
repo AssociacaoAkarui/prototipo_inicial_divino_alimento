@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
 import { 
   Search, 
@@ -86,81 +87,106 @@ const AdminCategorias = () => {
         </Button>
       }
     >
-      <div className="space-y-6 pb-20">
+      <div className="space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="md:flex md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">Categorias de Produtos</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
+              Categorias de Produtos
+            </h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               Gerenciar categorias dos produtos comercializados
             </p>
           </div>
-          <Button 
-            onClick={() => navigate('/admin/categorias/novo')}
-            className="bg-primary hover:bg-primary/90 whitespace-nowrap"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Adicionar Categoria
-          </Button>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Buscar categoria..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+        {/* Search and Actions */}
+        <Card>
+          <CardHeader className="pb-4">
+            <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Buscar categoria..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Button onClick={() => navigate('/admin/categorias/novo')} className="w-full md:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Categoria
+              </Button>
+            </div>
+          </CardHeader>
+        </Card>
 
-        {/* List */}
-        <div className="space-y-3">
-          {filteredCategorias.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <p className="text-muted-foreground">Nenhuma categoria encontrada</p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredCategorias.map((categoria) => (
-              <Card key={categoria.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-lg truncate">{categoria.nome}</h3>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                        variant={categoria.situacao === 'Ativo' ? 'default' : 'secondary'}
-                        className={categoria.situacao === 'Ativo' ? 'bg-green-500' : 'bg-gray-500'}
-                      >
-                        {categoria.situacao}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(categoria.id)}
-                        className="text-primary hover:bg-primary/10"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(categoria)}
-                        className="text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+        {/* Categories Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg md:text-xl">
+              Lista de Categorias ({filteredCategorias.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {filteredCategorias.length === 0 ? (
+              <div className="p-6 text-center text-muted-foreground">
+                {searchTerm ? 'Nenhuma categoria encontrada.' : 'Nenhuma categoria cadastrada.'}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome da Categoria</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCategorias.map((categoria) => (
+                      <TableRow key={categoria.id}>
+                        <TableCell className="font-medium">
+                          {categoria.nome}
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={categoria.situacao === 'Ativo' ? 'default' : 'warning'}
+                            className={categoria.situacao === 'Ativo' ? 'bg-green-500 hover:bg-green-600' : ''}
+                          >
+                            {categoria.situacao}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(categoria.id)}
+                              className="flex items-center gap-2"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                              <span className="hidden md:inline">Editar</span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(categoria)}
+                              className="flex items-center gap-2 text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              <span className="hidden md:inline">Excluir</span>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Delete Confirmation Dialog */}
