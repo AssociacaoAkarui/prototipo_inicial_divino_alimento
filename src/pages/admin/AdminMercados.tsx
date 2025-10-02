@@ -258,7 +258,7 @@ const AdminMercados = () => {
         <div className="lg:col-span-12 mb-4 lg:mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <div className="text-center lg:text-left mb-4 lg:mb-0">
-              <h1 className="text-2xl lg:text-3xl font-bold text-gradient-primary flex items-center justify-center lg:justify-start">
+              <h1 className="text-2xl lg:text-3xl font-bold text-gradient-primary flex items-center justify-start">
                 <Store className="w-6 h-6 lg:w-8 lg:h-8 mr-3" />
                 Cadastro de Mercados
               </h1>
