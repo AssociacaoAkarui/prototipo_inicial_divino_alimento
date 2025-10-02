@@ -36,6 +36,7 @@ const UsuarioDados = () => {
     perfilFornecedor: true,
     perfilConsumidor: false,
     perfilAdministrador: true,
+    perfilAdministradorMercado: false,
     situacao: 'Ativo'
   });
 
@@ -118,15 +119,14 @@ const UsuarioDados = () => {
 
   return (
     <ResponsiveLayout
-      headerContent={
+      leftHeaderContent={
         <Button 
           variant="ghost" 
-          size="sm"
-          onClick={handleCancel}
-          className="focus-ring text-primary-foreground hover:bg-primary-hover"
+          size="icon-sm"
+          onClick={() => navigate(-1)}
+          className="text-primary-foreground hover:bg-primary-hover"
         >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          <span className="hidden md:inline">Voltar</span>
+          <ArrowLeft className="w-4 h-4" />
         </Button>
       }
     >
@@ -370,6 +370,19 @@ const UsuarioDados = () => {
                 Administrador (não editável)
               </Label>
             </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="perfilAdministradorMercado"
+                checked={formData.perfilAdministradorMercado || false}
+                onCheckedChange={(checked) => 
+                  handleInputChange('perfilAdministradorMercado', checked as boolean)
+                }
+              />
+              <Label htmlFor="perfilAdministradorMercado" className="cursor-pointer">
+                Administrador de Mercado
+              </Label>
+            </div>
           </CardContent>
         </Card>
 
@@ -398,7 +411,16 @@ const UsuarioDados = () => {
                 className={errors.aceitePolitica ? 'border-destructive' : ''}
               />
               <Label htmlFor="aceitePolitica" className="cursor-pointer text-sm">
-                Aceito a Política de Privacidade e os Termos de Uso <span className="text-destructive">*</span>
+                Aceito a Política de Privacidade e os{' '}
+                <a 
+                  href="https://docs.google.com/document/d/1u69VUNkih50pM5IBT0ecp69JLR2SBIEc/edit" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Termos de Uso
+                </a>{' '}
+                <span className="text-destructive">*</span>
               </Label>
             </div>
             {errors.aceitePolitica && (

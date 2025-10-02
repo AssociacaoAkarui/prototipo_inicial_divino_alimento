@@ -23,6 +23,7 @@ const Usuario = () => {
     perfilFornecedor: false,
     perfilConsumidor: false,
     perfilAdministrador: false,
+    perfilAdministradorMercado: false,
     situacao: 'Ativo' as 'Ativo' | 'Inativo'
   });
 
@@ -37,6 +38,7 @@ const Usuario = () => {
         perfilFornecedor: true,
         perfilConsumidor: false,
         perfilAdministrador: true,
+        perfilAdministradorMercado: false,
         situacao: 'Ativo' as 'Ativo' | 'Inativo'
       };
       setFormData(mockUser);
@@ -69,7 +71,7 @@ const Usuario = () => {
       newErrors.email = 'E-mail deve estar em formato válido';
     }
 
-    if (!formData.perfilFornecedor && !formData.perfilConsumidor && !formData.perfilAdministrador) {
+    if (!formData.perfilFornecedor && !formData.perfilConsumidor && !formData.perfilAdministrador && !formData.perfilAdministradorMercado) {
       newErrors.perfis = 'Pelo menos um perfil deve ser selecionado';
     }
 
@@ -122,11 +124,12 @@ const Usuario = () => {
       leftHeaderContent={
         <Button 
           variant="ghost" 
-          size="icon-sm"
+          size="sm"
           onClick={handleCancel}
           className="text-primary-foreground hover:bg-primary-hover"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Voltar
         </Button>
       }
     >
@@ -222,6 +225,19 @@ const Usuario = () => {
                 />
                 <Label htmlFor="perfilAdministrador" className="cursor-pointer">
                   Administrador
+                </Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="perfilAdministradorMercado"
+                  checked={formData.perfilAdministradorMercado}
+                  onCheckedChange={(checked) => 
+                    handleInputChange('perfilAdministradorMercado', checked as boolean)
+                  }
+                />
+                <Label htmlFor="perfilAdministradorMercado" className="cursor-pointer">
+                  Administrador de Mercado
                 </Label>
               </div>
             </div>

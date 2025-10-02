@@ -40,8 +40,6 @@ type MarketType = {
   id: number;
   name: string;
   deliveryPoints: string[];
-  products: number[];
-  totalProducts: number;
   type: string;
   administratorId: number;
   administrativeFee: number | null;
@@ -53,8 +51,6 @@ const mockMarkets: MarketType[] = [
     id: 1,
     name: 'Mercado Central',
     deliveryPoints: ['Centro', 'Zona Norte'],
-    products: [1, 2, 3],
-    totalProducts: 3,
     type: 'cesta',
     administratorId: 1,
     administrativeFee: 5,
@@ -64,8 +60,6 @@ const mockMarkets: MarketType[] = [
     id: 2,
     name: 'Feira Livre',
     deliveryPoints: ['Bairro Alto', 'Vila Nova'],
-    products: [2, 4],
-    totalProducts: 2,
     type: 'venda_direta',
     administratorId: 2,
     administrativeFee: null,
@@ -81,7 +75,6 @@ const AdminMercados = () => {
   const [newMarket, setNewMarket] = useState({ 
     name: '', 
     deliveryPoints: [''], 
-    products: [] as number[],
     type: '',
     administratorId: null as number | null,
     administrativeFee: null as number | null,
@@ -115,45 +108,6 @@ const AdminMercados = () => {
     }));
   };
 
-  const toggleProduct = (productId: number) => {
-    setNewMarket(prev => ({
-      ...prev,
-      products: prev.products.includes(productId)
-        ? prev.products.filter(id => id !== productId)
-        : [...prev.products, productId]
-    }));
-  };
-
-  const toggleAllProducts = () => {
-    setNewMarket(prev => ({
-      ...prev,
-      products: prev.products.length === mockProducts.length 
-        ? [] 
-        : mockProducts.map(p => p.id)
-    }));
-  };
-
-  const toggleAllEditProducts = () => {
-    if (!editData) return;
-    
-    setEditData(prev => {
-      if (!prev) return prev;
-      
-      const newProducts = prev.products.length === mockProducts.length 
-        ? [] 
-        : mockProducts.map(p => p.id);
-        
-      return {
-        ...prev,
-        products: newProducts,
-        totalProducts: newProducts.length
-      };
-    });
-  };
-
-  const getProductName = (id: number) => {
-    return mockProducts.find(p => p.id === id)?.name || '';
-  };
 
   const getAdministratorName = (id: number | null) => {
     if (!id) return '';
@@ -244,8 +198,6 @@ const AdminMercados = () => {
       id: markets.length + 1,
       name: newMarket.name,
       deliveryPoints: validDeliveryPoints,
-      products: newMarket.products,
-      totalProducts: newMarket.products.length,
       type: newMarket.type,
       administratorId: newMarket.administratorId,
       administrativeFee: newMarket.administrativeFee,
@@ -253,7 +205,7 @@ const AdminMercados = () => {
     };
 
     setMarkets([...markets, market]);
-    setNewMarket({ name: '', deliveryPoints: [''], products: [], type: '', administratorId: null, administrativeFee: null, status: 'ativo' });
+    setNewMarket({ name: '', deliveryPoints: [''], type: '', administratorId: null, administrativeFee: null, status: 'ativo' });
     setIsDialogOpen(false);
     setSelectedMarket(market);
     
@@ -394,12 +346,6 @@ const AdminMercados = () => {
                             <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                             <span className="text-xs text-muted-foreground">
                               {market.deliveryPoints.length} pontos
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-1 mt-1">
-                            <Package className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                            <span className="text-xs text-muted-foreground">
-                              {market.totalProducts} produtos
                             </span>
                           </div>
                           <div className="mt-2">
@@ -708,90 +654,14 @@ const AdminMercados = () => {
                   </div>
                 </div>
 
-                <Separator />
-
-                {/* Products */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-medium text-foreground">Produtos Ofertados</h4>
-                    {isEditingMarket && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={toggleAllEditProducts}
-                      >
-                        {editData?.products.length === mockProducts.length 
-                          ? "Desmarcar Todos" 
-                          : "Todos os produtos"
-                        }
-                      </Button>
-                    )}
-                  </div>
-                  
-                  {isEditingMarket ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      {mockProducts.map((product) => (
-                        <div key={product.id} className="flex items-center space-x-3 p-3 border rounded-lg">
-                          <Checkbox
-                            id={`edit-product-${product.id}`}
-                            checked={editData?.products.includes(product.id) || false}
-                            onCheckedChange={(checked) => {
-                              const currentProducts = editData?.products || [];
-                              const newProducts = checked
-                                ? [...currentProducts, product.id]
-                                : currentProducts.filter(id => id !== product.id);
-                              setEditData(prev => prev ? { 
-                                ...prev, 
-                                products: newProducts, 
-                                totalProducts: newProducts.length 
-                              } : null);
-                            }}
-                          />
-                          <div className="flex-1">
-                            <Label htmlFor={`edit-product-${product.id}`} className="text-sm font-medium">
-                              {product.name}
-                            </Label>
-                            <p className="text-xs text-muted-foreground">
-                              R$ {product.price.toFixed(2)}/kg
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      {selectedMarket.products.map((productId) => {
-                        const product = mockProducts.find(p => p.id === productId);
-                        return product ? (
-                          <div key={productId} className="flex items-center space-x-3 p-3 bg-primary/5 rounded-lg border border-primary/20">
-                            <Package className="w-4 h-4 text-primary" />
-                            <div>
-                              <p className="text-sm font-medium">{product.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                R$ {product.price.toFixed(2)}/kg
-                              </p>
-                            </div>
-                          </div>
-                        ) : null;
-                      })}
-                    </div>
-                  )}
-                </div>
-
                 {/* Statistics - Desktop Only */}
                 <div className="hidden lg:block">
                   <Separator />
-                  <div className="grid grid-cols-3 gap-4 pt-4">
+                  <div className="grid grid-cols-2 gap-4 pt-4">
                     <Card className="text-center bg-muted/30">
                       <CardContent className="p-4">
                         <div className="text-lg font-bold text-foreground">{selectedMarket.deliveryPoints.length}</div>
                         <div className="text-xs text-muted-foreground">Pontos de Entrega</div>
-                      </CardContent>
-                    </Card>
-                    <Card className="text-center bg-muted/30">
-                      <CardContent className="p-4">
-                        <div className="text-lg font-bold text-foreground">{selectedMarket.totalProducts}</div>
-                        <div className="text-xs text-muted-foreground">Produtos Ofertados</div>
                       </CardContent>
                     </Card>
                     <Card className="text-center bg-muted/30">
@@ -965,42 +835,6 @@ const AdminMercados = () => {
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar Ponto
                 </Button>
-              </div>
-            </div>
-
-            {/* Products Selection */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <Label className="text-base font-medium">Produtos Ofertados</Label>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleAllProducts}
-                >
-                  {newMarket.products.length === mockProducts.length 
-                    ? "Desmarcar Todos" 
-                    : "Todos os produtos"
-                  }
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {mockProducts.map((product) => (
-                  <div key={product.id} className="flex items-center space-x-3 p-3 border rounded-lg">
-                    <Checkbox
-                      id={`product-${product.id}`}
-                      checked={newMarket.products.includes(product.id)}
-                      onCheckedChange={() => toggleProduct(product.id)}
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor={`product-${product.id}`} className="text-sm font-medium">
-                        {product.name}
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        R$ {product.price.toFixed(2)}/kg
-                      </p>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
 
