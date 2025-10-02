@@ -107,7 +107,7 @@ const UsuarioIndex = () => {
         <Button 
           variant="ghost" 
           size="icon-sm"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/admin/dashboard')}
           className="text-primary-foreground hover:bg-primary-hover"
         >
           <ArrowLeft className="w-4 h-4" />
