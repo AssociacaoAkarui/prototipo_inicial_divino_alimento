@@ -124,12 +124,11 @@ const Usuario = () => {
       leftHeaderContent={
         <Button 
           variant="ghost" 
-          size="sm"
+          size="icon-sm"
           onClick={handleCancel}
           className="text-primary-foreground hover:bg-primary-hover"
         >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          Voltar
+          <ArrowLeft className="w-4 h-4" />
         </Button>
       }
     >
