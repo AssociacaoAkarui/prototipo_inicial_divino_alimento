@@ -359,6 +359,19 @@ const UsuarioDados = () => {
 
             <div className="flex items-center space-x-2">
               <Checkbox
+                id="perfilAdministradorMercado"
+                checked={formData.perfilAdministradorMercado || false}
+                onCheckedChange={(checked) => 
+                  handleInputChange('perfilAdministradorMercado', checked as boolean)
+                }
+              />
+              <Label htmlFor="perfilAdministradorMercado" className="cursor-pointer">
+                Administrador de Mercado
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
                 id="perfilAdministrador"
                 checked={formData.perfilAdministrador}
                 disabled
@@ -368,19 +381,6 @@ const UsuarioDados = () => {
                 className="cursor-not-allowed opacity-50"
               >
                 Administrador (não editável)
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="perfilAdministradorMercado"
-                checked={formData.perfilAdministradorMercado || false}
-                onCheckedChange={(checked) => 
-                  handleInputChange('perfilAdministradorMercado', checked as boolean)
-                }
-              />
-              <Label htmlFor="perfilAdministradorMercado" className="cursor-pointer">
-                Administrador de Mercado
               </Label>
             </div>
           </CardContent>
