@@ -20,8 +20,6 @@ interface Produto {
   id: string;
   nome: string;
   categoria: string;
-  unidade: string;
-  valorReferencia: number;
   status: 'Ativo' | 'Inativo';
 }
 
@@ -36,40 +34,30 @@ const AdminProdutos = () => {
       id: '1', 
       nome: 'Tomate Orgânico', 
       categoria: 'Hortaliças', 
-      unidade: 'kg',
-      valorReferencia: 4.50,
       status: 'Ativo'
     },
     { 
       id: '2', 
       nome: 'Ovos Caipiras', 
       categoria: 'Derivados', 
-      unidade: 'dúzia',
-      valorReferencia: 15.00,
       status: 'Ativo'
     },
     { 
       id: '3', 
       nome: 'Mel Orgânico', 
       categoria: 'Derivados', 
-      unidade: 'litro',
-      valorReferencia: 28.90,
       status: 'Inativo'
     },
     { 
       id: '4', 
       nome: 'Alface Crespa', 
       categoria: 'Hortaliças', 
-      unidade: 'maço',
-      valorReferencia: 3.00,
       status: 'Ativo'
     },
     { 
       id: '5', 
       nome: 'Banana Prata', 
       categoria: 'Frutas', 
-      unidade: 'kg',
-      valorReferencia: 5.50,
       status: 'Ativo'
     }
   ];
@@ -159,8 +147,6 @@ const AdminProdutos = () => {
                     <TableRow>
                       <TableHead>Nome do Produto</TableHead>
                       <TableHead>Categoria</TableHead>
-                      <TableHead>Unidade de Medida</TableHead>
-                      <TableHead>Valor de Referência (R$)</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
@@ -172,8 +158,6 @@ const AdminProdutos = () => {
                           {produto.nome}
                         </TableCell>
                         <TableCell>{produto.categoria}</TableCell>
-                        <TableCell>{produto.unidade}</TableCell>
-                        <TableCell>R$ {produto.valorReferencia.toFixed(2)}</TableCell>
                         <TableCell>
                           <Badge 
                             variant={produto.status === 'Ativo' ? 'success' : 'warning'}

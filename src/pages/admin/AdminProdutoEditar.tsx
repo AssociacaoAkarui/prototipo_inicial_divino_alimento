@@ -39,7 +39,7 @@ const AdminProdutoEditar = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.nome || !formData.categoria || !formData.unidade || !formData.valorReferencia) {
+    if (!formData.nome || !formData.categoria) {
       toast({
         title: "Erro de validação",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -139,46 +139,6 @@ const AdminProdutoEditar = () => {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              {/* Unidade de Medida */}
-              <div className="space-y-2">
-                <Label htmlFor="unidade">
-                  Unidade de Medida <span className="text-destructive">*</span>
-                </Label>
-                <Select
-                  value={formData.unidade}
-                  onValueChange={(value) => setFormData({ ...formData, unidade: value })}
-                  required
-                >
-                  <SelectTrigger id="unidade">
-                    <SelectValue placeholder="Selecione uma unidade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {unidades.map((unidade) => (
-                      <SelectItem key={unidade} value={unidade}>
-                        {unidade}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Valor de Referência */}
-              <div className="space-y-2">
-                <Label htmlFor="valorReferencia">
-                  Valor de Referência (R$) <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="valorReferencia"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.valorReferencia}
-                  onChange={(e) => setFormData({ ...formData, valorReferencia: e.target.value })}
-                  placeholder="0.00"
-                  required
-                />
               </div>
 
               {/* Descrição */}
