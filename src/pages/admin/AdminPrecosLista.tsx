@@ -85,7 +85,7 @@ export default function AdminPrecosLista() {
                   <TableRow key={mercado.id}>
                     <TableCell className="font-medium">{mercado.nome}</TableCell>
                     <TableCell>{mercado.tipo}</TableCell>
-                    <TableCell>—</TableCell>
+                    <TableCell>{mercado.administrador || '—'}</TableCell>
                     <TableCell>
                       <Badge variant={mercado.status === 'ativo' ? "default" : "secondary"}>
                         {mercado.status === 'ativo' ? 'Ativo' : 'Inativo'}
@@ -126,7 +126,7 @@ export default function AdminPrecosLista() {
               <CardContent className="space-y-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Administrador Responsável</p>
-                  <p className="text-sm font-medium">—</p>
+                  <p className="text-sm font-medium">{mercado.administrador || '—'}</p>
                 </div>
                 <Button
                   size="sm"
