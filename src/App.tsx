@@ -36,6 +36,9 @@ import AdminCategorias from "./pages/admin/AdminCategorias";
 import AdminCategoriaNovo from "./pages/admin/AdminCategoriaNovo";
 import AdminCategoriaDados from "./pages/admin/AdminCategoriaDados";
 import AdminProdutos from "./pages/admin/AdminProdutos";
+import AdminProdutoNovo from "./pages/admin/AdminProdutoNovo";
+import AdminProdutoEditar from "./pages/admin/AdminProdutoEditar";
+import AdminProdutosSubmissoes from "./pages/admin/AdminProdutosSubmissoes";
 import AdminEstoque from "./pages/admin/AdminEstoque";
 import AdminConfig from "./pages/admin/AdminConfig";
 import AdminVenda from "./pages/admin/AdminVenda";
@@ -99,6 +102,9 @@ const App = () => (
           <Route path="/admin/categorias/novo" element={<AdminCategoriaNovo />} />
           <Route path="/admin/categorias/:id" element={<AdminCategoriaDados />} />
           <Route path="/admin/produtos" element={<AdminProdutos />} />
+          <Route path="/admin/produto" element={<AdminProdutoNovo />} />
+          <Route path="/admin/produto/:id" element={<AdminProdutoEditar />} />
+          <Route path="/admin/produtos-submissoes" element={<AdminProdutosSubmissoes />} />
           <Route path="/admin/estoque" element={<AdminEstoque />} />
           <Route path="/admin/config" element={<AdminConfig />} />
           <Route path="/admin/venda" element={<AdminVenda />} />

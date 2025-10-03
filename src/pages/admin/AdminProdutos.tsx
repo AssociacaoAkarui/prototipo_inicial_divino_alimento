@@ -1,119 +1,96 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
-import { ArrowLeft, Package, CheckCircle, X, Edit, Search, Upload, Image } from 'lucide-react';
+import { 
+  Search, 
+  Plus, 
+  Edit2, 
+  Trash2,
+  ArrowLeft
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
-// Mock data
-const mockSubmissions = [
-  {
-    id: 1,
-    name: 'Tomate Cereja',
-    supplier: 'João da Silva',
-    unit: 'kg',
-    conversionFactor: 1,
-    certified: true,
-    familyFarming: true,
-    harvestPeriod: 'Março a Julho',
-    description: 'Tomate cereja orgânico cultivado sem agrotóxicos',
-    submissionDate: '2024-02-15',
-    status: 'pendente',
-    image: '/public/lovable-uploads/00c320e7-a99d-4c71-a87f-548f186305d0.png',
-    paymentValue: ''
-  },
-  {
-    id: 2,
-    name: 'Rúcula Selvagem',
-    supplier: 'Maria Fernandes',
-    unit: 'maço',
-    conversionFactor: 0.2,
-    certified: false,
-    familyFarming: true,
-    harvestPeriod: 'Todo ano',
-    description: 'Rúcula cultivada em sistema hidropônico',
-    submissionDate: '2024-02-18',
-    status: 'pendente',
-    image: '/public/lovable-uploads/075f4442-f5fb-4f92-a192-635abe87b383.png',
-    paymentValue: ''
-  }
-];
-
-interface AnalysisModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  submission: typeof mockSubmissions[0] | null;
+interface Produto {
+  id: string;
+  nome: string;
+  categoria: string;
+  unidade: string;
+  valorReferencia: number;
+  status: 'Ativo' | 'Inativo';
 }
 
 const AdminProdutos = () => {
-  const [submissions, setSubmissions] = useState(mockSubmissions);
-  const [analysisModal, setAnalysisModal] = useState<AnalysisModalProps>({
-    isOpen: false,
-    onClose: () => {},
-    submission: null
-  });
-  const [reason, setReason] = useState('');
-  const [editedDescription, setEditedDescription] = useState('');
-  const [paymentValue, setPaymentValue] = useState('');
-  const [selectedImage, setSelectedImage] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const openAnalysisModal = (submission: typeof mockSubmissions[0]) => {
-    setAnalysisModal({
-      isOpen: true,
-      onClose: () => setAnalysisModal(prev => ({ ...prev, isOpen: false })),
-      submission
-    });
-    setReason('');
-    setEditedDescription(submission.description);
-    setPaymentValue(submission.paymentValue || '');
-    setSelectedImage(submission.image || '');
+  // Mock data for products
+  const produtos: Produto[] = [
+    { 
+      id: '1', 
+      nome: 'Tomate Orgânico', 
+      categoria: 'Hortaliças', 
+      unidade: 'kg',
+      valorReferencia: 4.50,
+      status: 'Ativo'
+    },
+    { 
+      id: '2', 
+      nome: 'Ovos Caipiras', 
+      categoria: 'Derivados', 
+      unidade: 'dúzia',
+      valorReferencia: 15.00,
+      status: 'Ativo'
+    },
+    { 
+      id: '3', 
+      nome: 'Mel Orgânico', 
+      categoria: 'Derivados', 
+      unidade: 'litro',
+      valorReferencia: 28.90,
+      status: 'Inativo'
+    },
+    { 
+      id: '4', 
+      nome: 'Alface Crespa', 
+      categoria: 'Hortaliças', 
+      unidade: 'maço',
+      valorReferencia: 3.00,
+      status: 'Ativo'
+    },
+    { 
+      id: '5', 
+      nome: 'Banana Prata', 
+      categoria: 'Frutas', 
+      unidade: 'kg',
+      valorReferencia: 5.50,
+      status: 'Ativo'
+    }
+  ];
+
+  const filteredProdutos = produtos.filter(produto => 
+    produto.nome.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleEdit = (id: string) => {
+    navigate(`/admin/produto/${id}`);
   };
 
-  const handleReject = () => {
-    if (!analysisModal.submission || !reason.trim()) return;
-
-    setSubmissions(submissions.filter(s => s.id !== analysisModal.submission!.id));
-    
+  const handleDelete = (id: string) => {
     toast({
-      title: "Produto reprovado",
-      description: "O fornecedor foi notificado sobre a reprovação.",
-      variant: "destructive"
+      title: "Produto excluído",
+      description: "O produto foi removido com sucesso.",
     });
-
-    analysisModal.onClose();
   };
 
-  const handleApprove = () => {
-    if (!analysisModal.submission || !paymentValue.trim()) return;
-
-    setSubmissions(submissions.filter(s => s.id !== analysisModal.submission!.id));
-    
-    toast({
-      title: "Produto aprovado!",
-      description: "O produto foi aprovado e está disponível no sistema.",
-    });
-
-    analysisModal.onClose();
-  };
-
-  const getStatusBadge = (status: string) => {
-    const config = {
-      pendente: { label: 'Aguardando Aprovação', variant: 'outline' as const },
-      aprovado: { label: 'Aprovado', variant: 'default' as const },
-      reprovado: { label: 'Reprovado', variant: 'destructive' as const }
-    };
-    
-    return <Badge variant={config[status as keyof typeof config]?.variant || 'outline'}>
-      {config[status as keyof typeof config]?.label || status}
-    </Badge>;
+  const handleAddProduto = () => {
+    navigate('/admin/produto');
   };
 
   return (
@@ -123,264 +100,137 @@ const AdminProdutos = () => {
           variant="ghost" 
           size="icon-sm"
           onClick={() => navigate('/admin/dashboard')}
-          className="focus-ring text-primary-foreground hover:bg-primary-hover"
+          className="text-primary-foreground hover:bg-primary-hover"
         >
           <ArrowLeft className="w-4 h-4" />
         </Button>
       }
     >
-      <div className="flex-1 p-4 space-y-4">
+      <div className="space-y-6 md:space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gradient-primary">Produtos (Submissões)</h1>
-          <p className="text-sm text-muted-foreground">
-            {submissions.length} {submissions.length === 1 ? 'produto aguardando' : 'produtos aguardando'} aprovação
-          </p>
+        <div className="md:flex md:items-center md:justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
+              Produtos
+            </h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Gerencie produtos base cadastrados no sistema
+            </p>
+          </div>
         </div>
 
-        {/* Submissions List */}
-        {submissions.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent className="space-y-4">
-              <CheckCircle className="w-16 h-16 mx-auto text-green-500" />
-              <div>
-                <h3 className="font-medium text-foreground">Todas as submissões processadas!</h3>
-                <p className="text-sm text-muted-foreground">
-                  Não há produtos aguardando aprovação no momento.
-                </p>
+        {/* Search and Actions */}
+        <Card>
+          <CardHeader className="pb-4">
+            <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Buscar produto por nome..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-              <Button onClick={() => navigate('/admin/dashboard')}>
-                Voltar ao Dashboard
+              <Button onClick={handleAddProduto} className="w-full md:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Produto
               </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {submissions.map((submission) => (
-              <Card key={submission.id} className="shadow-sm">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg font-poppins flex items-center space-x-2">
-                        <Package className="w-4 h-4 text-primary" />
-                        <span>{submission.name}</span>
-                      </CardTitle>
-                      <div className="flex items-center space-x-2 mt-1">
-                        {getStatusBadge(submission.status)}
-                        <Badge variant="secondary" className="text-xs">
-                          {submission.supplier}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div className="bg-muted/30 p-3 rounded-lg">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">Unidade:</span>
-                        <p className="font-medium">{submission.unit} (fator: {submission.conversionFactor})</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Período:</span>
-                        <p className="font-medium">{submission.harvestPeriod}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-3">
-                      <span className="text-muted-foreground text-sm">Descrição:</span>
-                      <p className="text-sm mt-1">{submission.description}</p>
-                    </div>
+            </div>
+          </CardHeader>
+        </Card>
 
-                    <div className="flex items-center space-x-4 mt-3 text-xs">
-                      {submission.certified && (
-                        <span className="flex items-center space-x-1">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span>Certificado</span>
-                        </span>
-                      )}
-                      {submission.familyFarming && (
-                        <span className="flex items-center space-x-1">
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                          <span>Agricultura Familiar</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <Button
-                    size="sm"
-                    className="w-full flex items-center justify-center space-x-2"
-                    onClick={() => openAnalysisModal(submission)}
-                  >
-                    <Search className="w-4 h-4" />
-                    <span>Analisar</span>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Analysis Modal */}
-        <Dialog open={analysisModal.isOpen} onOpenChange={analysisModal.onClose}>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Análise do Produto</DialogTitle>
-            </DialogHeader>
-
-            {analysisModal.submission && (
-              <div className="py-4 space-y-6">
-                {/* Product Info */}
-                <div className="bg-muted/50 p-4 rounded-lg">
-                  <h3 className="font-medium text-lg mb-2">{analysisModal.submission.name}</h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-                    <div>
-                      <span className="text-muted-foreground">Fornecedor:</span>
-                      <p className="font-medium">{analysisModal.submission.supplier}</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Unidade:</span>
-                      <p className="font-medium">{analysisModal.submission.unit} (fator: {analysisModal.submission.conversionFactor})</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Período:</span>
-                      <p className="font-medium">{analysisModal.submission.harvestPeriod}</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Data de Submissão:</span>
-                      <p className="font-medium">{new Date(analysisModal.submission.submissionDate).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-4 text-xs">
-                    {analysisModal.submission.certified && (
-                      <span className="flex items-center space-x-1">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span>Certificado</span>
-                      </span>
-                    )}
-                    {analysisModal.submission.familyFarming && (
-                      <span className="flex items-center space-x-1">
-                        <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                        <span>Agricultura Familiar</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Product Image */}
-                <div className="space-y-3">
-                  <Label>Imagem do Produto</Label>
-                  <div className="border rounded-lg p-4 text-center space-y-3">
-                    {selectedImage ? (
-                      <div className="space-y-2">
-                        <img 
-                          src={selectedImage} 
-                          alt={analysisModal.submission.name}
-                          className="mx-auto max-h-48 rounded-lg object-cover"
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedImage('')}
-                          className="flex items-center space-x-1"
-                        >
-                          <Upload className="w-4 h-4" />
-                          <span>Alterar Imagem</span>
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Image className="w-12 h-12 mx-auto text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">Nenhuma imagem selecionada</p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedImage('/public/lovable-uploads/36ccc781-03ee-494d-9194-3b6dfe4b1e24.png')}
-                          className="flex items-center space-x-1"
-                        >
-                          <Upload className="w-4 h-4" />
-                          <span>Carregar Imagem</span>
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Payment Value */}
-                <div className="space-y-2">
-                  <Label htmlFor="payment">Valor de Pagamento ao Fornecedor *</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-                    <Input
-                      id="payment"
-                      type="text"
-                      placeholder="5,00/kg"
-                      value={paymentValue}
-                      onChange={(e) => setPaymentValue(e.target.value)}
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descrição do Produto</Label>
-                  <Textarea
-                    id="description"
-                    value={editedDescription}
-                    onChange={(e) => setEditedDescription(e.target.value)}
-                    className="resize-none"
-                    rows={3}
-                  />
-                </div>
-
-                {/* Rejection Reason */}
-                <div className="space-y-2">
-                  <Label htmlFor="reason">Motivo da Reprovação (opcional)</Label>
-                  <Textarea
-                    id="reason"
-                    placeholder="Descreva o motivo caso vá reprovar o produto..."
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    className="resize-none"
-                    rows={3}
-                  />
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex space-x-2 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={analysisModal.onClose}
-                    className="flex-1"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={handleReject}
-                    disabled={!reason.trim()}
-                    className="flex-1"
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Reprovar
-                  </Button>
-                  <Button
-                    onClick={handleApprove}
-                    disabled={!paymentValue.trim()}
-                    className="flex-1"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-1" />
-                    Aprovar
-                  </Button>
-                </div>
+        {/* Products Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg md:text-xl">
+              Lista de Produtos ({filteredProdutos.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {filteredProdutos.length === 0 ? (
+              <div className="p-6 text-center text-muted-foreground">
+                {searchTerm ? 'Nenhum produto encontrado.' : 'Nenhum produto cadastrado.'}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome do Produto</TableHead>
+                      <TableHead>Categoria</TableHead>
+                      <TableHead>Unidade de Medida</TableHead>
+                      <TableHead>Valor de Referência (R$)</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProdutos.map((produto) => (
+                      <TableRow key={produto.id}>
+                        <TableCell className="font-medium">
+                          {produto.nome}
+                        </TableCell>
+                        <TableCell>{produto.categoria}</TableCell>
+                        <TableCell>{produto.unidade}</TableCell>
+                        <TableCell>R$ {produto.valorReferencia.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={produto.status === 'Ativo' ? 'success' : 'warning'}
+                          >
+                            {produto.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(produto.id)}
+                              className="flex items-center gap-2"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                              <span className="hidden md:inline">Editar</span>
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex items-center gap-2 text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  <span className="hidden md:inline">Excluir</span>
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Deseja realmente excluir este produto? Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => handleDelete(produto.id)}
+                                    className="bg-destructive hover:bg-destructive/90"
+                                  >
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
-          </DialogContent>
-        </Dialog>
+          </CardContent>
+        </Card>
       </div>
     </ResponsiveLayout>
   );

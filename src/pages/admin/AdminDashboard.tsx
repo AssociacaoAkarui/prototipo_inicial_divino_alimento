@@ -50,10 +50,17 @@ const AdminDashboard = () => {
       badge: null
     },
     {
+      title: 'Produtos',
+      description: 'Gerencie produtos base do catálogo',
+      icon: Package,
+      route: '/admin/produtos',
+      badge: null
+    },
+    {
       title: 'Produtos (Submissões)',
       description: 'Aprovar produtos enviados por fornecedores',
       icon: Package,
-      route: '/admin/produtos',
+      route: '/admin/produtos-submissoes',
       badge: '8 pendentes'
     },
     {
