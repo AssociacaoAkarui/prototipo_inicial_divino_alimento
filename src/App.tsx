@@ -38,6 +38,9 @@ import AdminCategoriaDados from "./pages/admin/AdminCategoriaDados";
 import AdminProdutos from "./pages/admin/AdminProdutos";
 import AdminProdutoNovo from "./pages/admin/AdminProdutoNovo";
 import AdminProdutoEditar from "./pages/admin/AdminProdutoEditar";
+import AdminProdutosComercialivaveis from "./pages/admin/AdminProdutosComercialivaveis";
+import AdminProdutoComercializavelNovo from "./pages/admin/AdminProdutoComercializavelNovo";
+import AdminProdutoComercializavelEditar from "./pages/admin/AdminProdutoComercializavelEditar";
 import AdminProdutosSubmissoes from "./pages/admin/AdminProdutosSubmissoes";
 import AdminEstoque from "./pages/admin/AdminEstoque";
 import AdminConfig from "./pages/admin/AdminConfig";
@@ -104,6 +107,9 @@ const App = () => (
           <Route path="/admin/produtos" element={<AdminProdutos />} />
           <Route path="/admin/produto" element={<AdminProdutoNovo />} />
           <Route path="/admin/produto/:id" element={<AdminProdutoEditar />} />
+          <Route path="/admin/produtos-comercializaveis" element={<AdminProdutosComercialivaveis />} />
+          <Route path="/admin/produto-comercializavel" element={<AdminProdutoComercializavelNovo />} />
+          <Route path="/admin/produto-comercializavel/:id" element={<AdminProdutoComercializavelEditar />} />
           <Route path="/admin/produtos-submissoes" element={<AdminProdutosSubmissoes />} />
           <Route path="/admin/estoque" element={<AdminEstoque />} />
           <Route path="/admin/config" element={<AdminConfig />} />

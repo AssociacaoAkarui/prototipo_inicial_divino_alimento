@@ -57,6 +57,13 @@ const AdminDashboard = () => {
       badge: null
     },
     {
+      title: 'Produtos Comercializáveis',
+      description: 'Gerenciar variações comerciais por unidade, peso e preço',
+      icon: ShoppingCart,
+      route: '/admin/produtos-comercializaveis',
+      badge: null
+    },
+    {
       title: 'Produtos (Submissões)',
       description: 'Aprovar produtos enviados por fornecedores',
       icon: Package,
