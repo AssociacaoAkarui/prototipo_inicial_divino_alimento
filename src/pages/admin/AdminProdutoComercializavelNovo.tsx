@@ -97,23 +97,15 @@ const AdminProdutoComercializavelNovo = () => {
                 <Label htmlFor="unidade">
                   Unidade de Comercialização <span className="text-destructive">*</span>
                 </Label>
-                <Select
+                <Input
+                  id="unidade"
+                  type="text"
+                  placeholder="Ex: Unidade, Cesta, Lote, Dúzia, Litro, Kg"
                   value={formData.unidade}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, unidade: value })
+                  onChange={(e) =>
+                    setFormData({ ...formData, unidade: e.target.value })
                   }
-                >
-                  <SelectTrigger id="unidade">
-                    <SelectValue placeholder="Selecione a unidade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {unidadesComercializacao.map((unidade) => (
-                      <SelectItem key={unidade} value={unidade}>
-                        {unidade}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                />
               </div>
 
               <div className="space-y-2">
