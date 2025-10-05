@@ -701,157 +701,200 @@ const AdminMercados = () => {
 
       {/* New Market Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-[600px] lg:max-w-[880px] max-h-[90vh] flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle>Novo Mercado</DialogTitle>
+        <DialogContent className="w-[min(960px,92vw)] max-h-[80vh] flex flex-col p-0">
+          {/* Fixed Header */}
+          <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b">
+            <DialogTitle className="text-xl font-semibold">Novo Mercado</DialogTitle>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto px-1">
-            <div className="space-y-6 py-2">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              
+              {/* Left Column - Basic Information */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-foreground border-b pb-2 mb-4">
+                  Informações Básicas
+                </h4>
                 
-                {/* Basic Information */}
-                <div className="space-y-4">
-                  <h4 className="font-medium">Informações Básicas</h4>
-                  
-                  <div>
-                    <Label htmlFor="newMarketName">Nome do Mercado *</Label>
-                    <Input
-                      id="newMarketName"
-                      value={newMarket.name}
-                      onChange={(e) => setNewMarket(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Ex: Mercado Central"
-                      className="mt-2"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="marketType">Tipo de Mercado *</Label>
-                    <Select
-                      value={newMarket.type}
-                      onValueChange={(value) => setNewMarket(prev => ({ ...prev, type: value }))}
-                    >
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Selecione o tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {marketTypeOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="administrator">Administrador Responsável *</Label>
-                    <Select
-                      value={newMarket.administratorId?.toString() || ''}
-                      onValueChange={(value) => setNewMarket(prev => ({ ...prev, administratorId: parseInt(value) }))}
-                    >
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Selecione o administrador" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockMarketAdministrators.map((admin) => (
-                          <SelectItem key={admin.id} value={admin.id.toString()}>
-                            <div className="flex items-center space-x-2">
-                              <User className="w-4 h-4" />
-                              <span>{admin.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="administrativeFee">Taxa Administrativa (%)</Label>
-                    <Input
-                      id="administrativeFee"
-                      type="number"
-                      value={newMarket.administrativeFee || ''}
-                      onChange={(e) => setNewMarket(prev => ({ 
-                        ...prev, 
-                        administrativeFee: e.target.value ? parseFloat(e.target.value) : null 
-                      }))}
-                      placeholder="Ex: 5.0"
-                      min="0"
-                      max="100"
-                      step="0.01"
-                      className="mt-2"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Status *</Label>
-                    <RadioGroup
-                      value={newMarket.status}
-                      onValueChange={(value: 'ativo' | 'inativo') => 
-                        setNewMarket(prev => ({ ...prev, status: value }))
-                      }
-                      className="mt-2"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="ativo" id="status-ativo" />
-                        <Label htmlFor="status-ativo" className="cursor-pointer">Ativo</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inativo" id="status-inativo" />
-                        <Label htmlFor="status-inativo" className="cursor-pointer">Inativo</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="newMarketName" className="text-sm font-medium">
+                    Nome do Mercado *
+                  </Label>
+                  <Input
+                    id="newMarketName"
+                    value={newMarket.name}
+                    onChange={(e) => setNewMarket(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Ex: Mercado Central"
+                    className="h-11"
+                  />
                 </div>
 
-                {/* Delivery Points */}
-                <div className="space-y-4">
-                  <h4 className="font-medium">Locais de Entrega</h4>
-                  
-                  {newMarket.deliveryPoints.map((point, index) => (
-                    <div key={index} className="flex gap-2">
-                      <Input
-                        value={point}
-                        onChange={(e) => updateDeliveryPoint(index, e.target.value)}
-                        placeholder="Ex: Centro, Zona Norte"
-                      />
-                      {newMarket.deliveryPoints.length > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeDeliveryPoint(index)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
+                <div className="space-y-2">
+                  <Label htmlFor="marketType" className="text-sm font-medium">
+                    Tipo de Mercado *
+                  </Label>
+                  <Select
+                    value={newMarket.type}
+                    onValueChange={(value) => setNewMarket(prev => ({ ...prev, type: value }))}
+                  >
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {marketTypeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="administrator" className="text-sm font-medium">
+                    Administrador Responsável *
+                  </Label>
+                  <Select
+                    value={newMarket.administratorId?.toString() || ''}
+                    onValueChange={(value) => setNewMarket(prev => ({ ...prev, administratorId: parseInt(value) }))}
+                  >
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Selecione o administrador" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockMarketAdministrators.map((admin) => (
+                        <SelectItem key={admin.id} value={admin.id.toString()}>
+                          <div className="flex items-center space-x-2">
+                            <User className="w-4 h-4" />
+                            <span>{admin.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="administrativeFee" className="text-sm font-medium">
+                    Taxa Administrativa (%)
+                  </Label>
+                  <Input
+                    id="administrativeFee"
+                    type="text"
+                    value={newMarket.administrativeFee !== null ? String(newMarket.administrativeFee).replace('.', ',') : ''}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(',', '.');
+                      setNewMarket(prev => ({ 
+                        ...prev, 
+                        administrativeFee: value ? parseFloat(value) : null 
+                      }));
+                    }}
+                    placeholder="Ex: 5,0"
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Status *</Label>
+                  <RadioGroup
+                    value={newMarket.status}
+                    onValueChange={(value: 'ativo' | 'inativo') => 
+                      setNewMarket(prev => ({ ...prev, status: value }))
+                    }
+                    className="flex items-center space-x-6 mt-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="ativo" id="status-ativo" />
+                      <Label htmlFor="status-ativo" className="cursor-pointer font-normal">
+                        Ativo
+                      </Label>
                     </div>
-                  ))}
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="inativo" id="status-inativo" />
+                      <Label htmlFor="status-inativo" className="cursor-pointer font-normal">
+                        Inativo
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+
+              {/* Right Column - Delivery Points */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-foreground border-b pb-2 mb-4">
+                  Locais de Entrega
+                </h4>
+                
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Input
+                      value={newMarket.deliveryPoints[0] || ''}
+                      onChange={(e) => updateDeliveryPoint(0, e.target.value)}
+                      placeholder="Ex: Centro, Zona Norte"
+                      className="h-11"
+                    />
+                  </div>
+                  
                   <Button
                     variant="outline"
-                    size="sm"
                     onClick={addDeliveryPoint}
+                    className="w-full h-11 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Adicionar Ponto
                   </Button>
+
+                  {/* Display added delivery points as green chips */}
+                  {newMarket.deliveryPoints.length > 1 && (
+                    <div className="space-y-2 mt-4">
+                      <Label className="text-sm font-medium">Pontos adicionados:</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {newMarket.deliveryPoints.slice(1).map((point, index) => (
+                          point.trim() && (
+                            <Badge 
+                              key={index + 1} 
+                              className="bg-success text-white px-3 py-1 flex items-center gap-2"
+                            >
+                              <span>{point}</span>
+                              <button
+                                onClick={() => removeDeliveryPoint(index + 1)}
+                                className="hover:bg-white/20 rounded-full p-0.5"
+                              >
+                                <Plus className="w-3 h-3 rotate-45" />
+                              </button>
+                            </Badge>
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="flex space-x-3 pt-4 border-t flex-shrink-0 sticky bottom-0 bg-background">
-            <Button 
-              variant="outline" 
-              onClick={() => setIsDialogOpen(false)}
-              className="flex-1"
-            >
-              Cancelar
-            </Button>
-            <Button onClick={saveMarket} className="flex-1">
-              <Plus className="w-4 h-4 mr-2" />
-              Criar Mercado
-            </Button>
+          {/* Fixed Footer */}
+          <div className="flex-shrink-0 px-6 py-4 border-t bg-background shadow-lg">
+            <div className="flex justify-end space-x-3">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsDialogOpen(false);
+                  setNewMarket({ name: '', deliveryPoints: [''], type: '', administratorId: null, administrativeFee: null, status: 'ativo' });
+                }}
+                className="px-6 h-12 border-primary text-primary hover:bg-primary/10"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={saveMarket} 
+                className="px-6 h-12 bg-primary hover:bg-primary/90"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Criar Mercado
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
