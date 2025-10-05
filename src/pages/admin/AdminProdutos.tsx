@@ -28,8 +28,7 @@ const AdminProdutos = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Mock data for products
-  const produtos: Produto[] = [
+  const [produtos, setProdutos] = useState<Produto[]>([
     { 
       id: '1', 
       nome: 'Tomate Orgânico', 
@@ -60,7 +59,7 @@ const AdminProdutos = () => {
       categoria: 'Frutas', 
       status: 'Ativo'
     }
-  ];
+  ]);
 
   const filteredProdutos = produtos.filter(produto => 
     produto.nome.toLowerCase().includes(searchTerm.toLowerCase())
@@ -71,6 +70,9 @@ const AdminProdutos = () => {
   };
 
   const handleDelete = (id: string) => {
+    // Remover produto da lista
+    setProdutos(prev => prev.filter(p => p.id !== id));
+    
     toast({
       title: "Produto excluído",
       description: "O produto foi removido com sucesso.",

@@ -26,6 +26,7 @@ import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
 import { toast } from "@/hooks/use-toast";
 import { produtosReferencia } from "@/data/produtos-referencia";
 import { mercadosLocais } from "@/data/mercados-locais";
+import { formatBRL, formatBRLInput, parseBRLToNumber } from "@/utils/currency";
 
 interface ProdutoPreco {
   id: string;
@@ -49,7 +50,7 @@ export default function AdminPrecos() {
       nome: p.nome,
       unidade: p.unidade,
       precoBase: p.preco_referencia,
-      precoMercado: p.preco_referencia.toFixed(2),
+      precoMercado: p.preco_referencia.toFixed(2).replace('.', ','),
       modified: false,
     }))
   );
@@ -64,23 +65,22 @@ export default function AdminPrecos() {
   const hasModifications = produtos.some(p => p.modified);
 
   const handlePriceChange = (id: string, value: string) => {
-    // Allow only numbers and one decimal point
-    if (value === "" || /^\d*\.?\d{0,2}$/.test(value)) {
-      setProdutos(prev =>
-        prev.map(p =>
-          p.id === id
-            ? { ...p, precoMercado: value, modified: true }
-            : p
-        )
-      );
-    }
+    // Aplicar formatação brasileira
+    const formatted = formatBRLInput(value);
+    setProdutos(prev =>
+      prev.map(p =>
+        p.id === id
+          ? { ...p, precoMercado: formatted, modified: true }
+          : p
+      )
+    );
   };
 
   const handleSaveSingle = (id: string) => {
     const produto = produtos.find(p => p.id === id);
     if (!produto) return;
 
-    const precoNumerico = parseFloat(produto.precoMercado);
+    const precoNumerico = parseBRLToNumber(produto.precoMercado);
     
     if (!produto.precoMercado || isNaN(precoNumerico) || precoNumerico <= 0) {
       toast({
@@ -107,7 +107,7 @@ export default function AdminPrecos() {
 
   const handleSaveAll = () => {
     const invalidProducts = produtos.filter(p => {
-      const preco = parseFloat(p.precoMercado);
+      const preco = parseBRLToNumber(p.precoMercado);
       return p.modified && (!p.precoMercado || isNaN(preco) || preco <= 0);
     });
 
@@ -218,7 +218,7 @@ export default function AdminPrecos() {
                   <TableRow key={produto.id}>
                     <TableCell className="font-medium">{produto.nome}</TableCell>
                     <TableCell>{produto.unidade}</TableCell>
-                    <TableCell>R$ {produto.precoBase.toFixed(2)}</TableCell>
+                    <TableCell>{formatBRL(produto.precoBase)}</TableCell>
                     <TableCell>
                       <Input
                         type="text"
@@ -226,7 +226,7 @@ export default function AdminPrecos() {
                         value={produto.precoMercado}
                         onChange={(e) => handlePriceChange(produto.id, e.target.value)}
                         className="w-32"
-                        placeholder="0.00"
+                        placeholder="0,00"
                       />
                     </TableCell>
                     <TableCell className="text-right">
@@ -257,7 +257,7 @@ export default function AdminPrecos() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Preço Base</p>
-                    <p className="text-lg font-semibold">R$ {produto.precoBase.toFixed(2)}</p>
+                    <p className="text-lg font-semibold">{formatBRL(produto.precoBase)}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Preço do Mercado</p>
@@ -266,7 +266,7 @@ export default function AdminPrecos() {
                       inputMode="decimal"
                       value={produto.precoMercado}
                       onChange={(e) => handlePriceChange(produto.id, e.target.value)}
-                      placeholder="0.00"
+                      placeholder="0,00"
                       className="mt-1"
                     />
                   </div>

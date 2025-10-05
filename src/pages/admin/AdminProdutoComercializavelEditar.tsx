@@ -22,8 +22,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { ArrowLeft } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { produtosReferencia } from '@/data/produtos-referencia';
+import { formatBRLInput, parseBRLToNumber } from '@/utils/currency';
 
 const AdminProdutoComercializavelEditar = () => {
   const navigate = useNavigate();
@@ -54,6 +56,10 @@ const AdminProdutoComercializavelEditar = () => {
       return;
     }
 
+    // Converter preço para número antes de salvar
+    const precoNumerico = parseBRLToNumber(formData.preco_base);
+    console.log('Atualizando produto com preço:', precoNumerico);
+
     toast({
       title: "Sucesso",
       description: "Produto comercializável atualizado com sucesso!",
@@ -79,7 +85,18 @@ const AdminProdutoComercializavelEditar = () => {
   };
 
   return (
-    <ResponsiveLayout>
+    <ResponsiveLayout
+      leftHeaderContent={
+        <Button 
+          variant="ghost" 
+          size="icon-sm"
+          onClick={() => navigate('/admin/produtos-comercializaveis')}
+          className="text-primary-foreground hover:bg-primary-hover"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+      }
+    >
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary mb-2">
@@ -157,13 +174,12 @@ const AdminProdutoComercializavelEditar = () => {
                 </Label>
                 <Input
                   id="preco_base"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="Ex: 4.50"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="Ex: 4,50"
                   value={formData.preco_base}
                   onChange={(e) =>
-                    setFormData({ ...formData, preco_base: e.target.value })
+                    setFormData({ ...formData, preco_base: formatBRLInput(e.target.value) })
                   }
                 />
               </div>

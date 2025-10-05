@@ -23,8 +23,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Search, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, ArrowLeft } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { formatBRL } from '@/utils/currency';
 
 interface ProdutoComercializavel {
   id: string;
@@ -42,7 +43,7 @@ const AdminProdutosComercialivaveis = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // Mock data
-  const [produtos] = useState<ProdutoComercializavel[]>([
+  const [produtos, setProdutos] = useState<ProdutoComercializavel[]>([
     { id: '1', produto_base: 'Tomate Orgânico', unidade: 'Unidade', peso_kg: 0.15, preco_base: 0.68, status: 'ativo' },
     { id: '2', produto_base: 'Tomate Orgânico', unidade: 'Cesta', peso_kg: 1.0, preco_base: 4.50, status: 'ativo' },
     { id: '3', produto_base: 'Ovos Caipiras', unidade: 'Dúzia', peso_kg: 0.7, preco_base: 15.00, status: 'ativo' },
@@ -65,6 +66,9 @@ const AdminProdutosComercialivaveis = () => {
   };
 
   const confirmDelete = () => {
+    // Remover o produto da lista
+    setProdutos(prev => prev.filter(p => p.id !== selectedId));
+    
     toast({
       title: "Produto excluído",
       description: "O produto comercializável foi removido com sucesso.",
@@ -78,7 +82,18 @@ const AdminProdutosComercialivaveis = () => {
   };
 
   return (
-    <ResponsiveLayout>
+    <ResponsiveLayout
+      leftHeaderContent={
+        <Button 
+          variant="ghost" 
+          size="icon-sm"
+          onClick={() => navigate('/admin/dashboard')}
+          className="text-primary-foreground hover:bg-primary-hover"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
+      }
+    >
       <div className="space-y-6">
         {/* Header */}
         <div>
@@ -129,7 +144,7 @@ const AdminProdutosComercialivaveis = () => {
                       <TableCell className="font-medium">{produto.produto_base}</TableCell>
                       <TableCell>{produto.unidade}</TableCell>
                       <TableCell>{produto.peso_kg.toFixed(2)} kg</TableCell>
-                      <TableCell>R$ {produto.preco_base.toFixed(2)}</TableCell>
+                      <TableCell>{formatBRL(produto.preco_base)}</TableCell>
                       <TableCell>
                         <Badge 
                           variant={produto.status === 'ativo' ? 'default' : 'secondary'}
@@ -191,7 +206,7 @@ const AdminProdutosComercialivaveis = () => {
                     </div>
                     <div>
                       <span className="text-muted-foreground">Preço:</span>
-                      <p className="font-medium">R$ {produto.preco_base.toFixed(2)}</p>
+                      <p className="font-medium">{formatBRL(produto.preco_base)}</p>
                     </div>
                   </div>
                   <div className="flex gap-2 pt-2">
