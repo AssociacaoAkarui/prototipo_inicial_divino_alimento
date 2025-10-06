@@ -15,7 +15,8 @@ import {
   TrendingUp,
   Calendar,
   DollarSign,
-  FolderTree
+  FolderTree,
+  RefreshCcw
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -82,6 +83,13 @@ const AdminDashboard = () => {
       description: 'Gerenciar categorias dos produtos comercializados',
       icon: FolderTree,
       route: '/admin/categorias',
+      badge: null
+    },
+    {
+      title: 'Ciclos',
+      description: 'Gerencie períodos de oferta e operação por mercado',
+      icon: RefreshCcw,
+      route: '/admin/ciclo-index',
       badge: null
     },
     {

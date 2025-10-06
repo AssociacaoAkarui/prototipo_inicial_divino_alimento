@@ -56,6 +56,8 @@ import AdminKitandinhaComposicao from "./pages/admin/AdminKitandinhaComposicao";
 import AdminKitandinhaResumo from "./pages/admin/AdminKitandinhaResumo";
 import AdminKitandinhaGestao from "./pages/admin/AdminKitandinhaGestao";
 import AdminRelatorios from "./pages/admin/AdminRelatorios";
+import AdminCicloIndex from "./pages/admin/AdminCicloIndex";
+import AdminCiclo from "./pages/admin/AdminCiclo";
 import Usuarios from "./pages/Usuarios";
 import UsuarioIndex from "./pages/UsuarioIndex";
 import Usuario from "./pages/Usuario";
@@ -126,6 +128,9 @@ const App = () => (
           <Route path="/admin/kitandinha/resumo/:id" element={<AdminKitandinhaResumo />} />
           <Route path="/admin/kitandinha/gestao/:id" element={<AdminKitandinhaGestao />} />
           <Route path="/admin/relatorios" element={<AdminRelatorios />} />
+          <Route path="/admin/ciclo-index" element={<AdminCicloIndex />} />
+          <Route path="/admin/ciclo" element={<AdminCiclo />} />
+          <Route path="/admin/ciclo/:id" element={<AdminCiclo />} />
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/usuario-index" element={<UsuarioIndex />} />
           <Route path="/usuario" element={<Usuario />} />
