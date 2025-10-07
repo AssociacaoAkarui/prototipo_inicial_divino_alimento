@@ -112,13 +112,13 @@ export default function AdminCicloIndex() {
   const getComposicaoIcon = (tipo?: 'cesta' | 'lote' | 'venda_direta') => {
     switch (tipo) {
       case 'cesta':
-        return <ShoppingBasket className="h-4 w-4" />;
+        return <ShoppingBasket className="h-5 w-5 text-primary" />;
       case 'lote':
-        return <Package className="h-4 w-4" />;
+        return <Package className="h-5 w-5 text-primary" />;
       case 'venda_direta':
-        return <Store className="h-4 w-4" />;
+        return <Store className="h-5 w-5 text-primary" />;
       default:
-        return <ShoppingBasket className="h-4 w-4" />;
+        return <ShoppingBasket className="h-5 w-5 text-primary" />;
     }
   };
 
@@ -225,21 +225,23 @@ export default function AdminCicloIndex() {
                       <TooltipProvider>
                         <div className="flex justify-end gap-2">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
                             onClick={() => navigate(`/admin/ciclo/${ciclo.id}`)}
+                            className="h-10 w-10 border-2 border-primary hover:bg-primary/10"
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-5 w-5 text-primary" />
                           </Button>
                           
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="icon"
                                 onClick={() => navigate(`/oferta/${ciclo.id}`)}
+                                className="h-10 w-10 border-2 border-primary hover:bg-primary/10"
                               >
-                                <ShoppingBasket className="h-4 w-4 text-primary" />
+                                <ShoppingBasket className="h-5 w-5 text-primary" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -250,10 +252,11 @@ export default function AdminCicloIndex() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="icon"
                                 onClick={() => handleComposicao(ciclo)}
                                 disabled={!ciclo.tipo_venda}
+                                className="h-10 w-10 border-2 border-primary hover:bg-primary/10 disabled:border-muted disabled:opacity-50"
                               >
                                 {getComposicaoIcon(ciclo.tipo_venda)}
                               </Button>
@@ -269,11 +272,12 @@ export default function AdminCicloIndex() {
                           </Tooltip>
 
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
                             onClick={() => handleDelete(ciclo.id)}
+                            className="h-10 w-10 border-2 border-destructive hover:bg-destructive/10"
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <Trash2 className="h-5 w-5 text-destructive" />
                           </Button>
                         </div>
                       </TooltipProvider>
