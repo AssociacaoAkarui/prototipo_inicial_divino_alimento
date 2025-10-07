@@ -42,13 +42,10 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  calcularNomeCiclo,
-  calcularFimOfertas,
   getTiposVendaPermitidos,
   getAdministradorMercado,
   getNomeMercado,
   getTipoVendaLabel,
-  Periodicidade,
 } from '@/utils/ciclo';
 
 type TipoVenda = 'cesta' | 'lote' | 'venda_direta';
@@ -82,31 +79,28 @@ const AdminCiclo = () => {
   const isEdit = !!id;
 
   const [nome, setNome] = useState('');
-  const [periodicidade, setPeriodicidade] = useState<Periodicidade>('semanal');
   const [inicioOfertas, setInicioOfertas] = useState('');
   const [fimOfertas, setFimOfertas] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [status, setStatus] = useState<'ativo' | 'inativo'>('ativo');
   const [mercados, setMercados] = useState<MercadoCiclo[]>([]);
 
-  // Mock data - em produção, buscar de uma API
-  const ciclosExistentes = [
-    { inicio_ofertas: '2025-10-13T00:00', periodicidade: 'semanal' as Periodicidade },
-    { inicio_ofertas: '2025-10-22T00:00', periodicidade: 'semanal' as Periodicidade },
-  ];
-
-  // Carregar dados do ciclo em modo de edição
+  // Carregar dados do ciclo em modo de edição e preencher com 3 mercados
   useEffect(() => {
     if (isEdit && id) {
       // Mock data - substituir por API call
       const mockCiclo = {
         nome: '1º Ciclo de Outubro 2025',
-        periodicidade: 'semanal' as Periodicidade,
         inicio_ofertas: '2025-10-13T08:00',
         fim_ofertas: '2025-10-20T18:00',
         observacoes: 'Ciclo de teste',
         status: 'ativo' as 'ativo' | 'inativo',
-        mercados: [
+        mercados: [] as MercadoCiclo[],
+      };
+
+      // Prefill com 3 mercados se não existirem
+      if (mockCiclo.mercados.length < 3) {
+        mockCiclo.mercados = [
           {
             id: '1',
             mercado_id: '1',
@@ -116,11 +110,25 @@ const AdminCiclo = () => {
             valor_alvo_cesta: '45,00',
             ponto_entrega: 'centro',
           },
-        ],
-      };
+          {
+            id: '2',
+            mercado_id: '2',
+            tipo_venda: 'lote' as TipoVenda,
+            ordem_atendimento: 2,
+            valor_alvo_lote: '200,00',
+            ponto_entrega: 'zona_norte',
+          },
+          {
+            id: '3',
+            mercado_id: '3',
+            tipo_venda: 'venda_direta' as TipoVenda,
+            ordem_atendimento: 3,
+            ponto_entrega: 'centro',
+          },
+        ];
+      }
 
       setNome(mockCiclo.nome);
-      setPeriodicidade(mockCiclo.periodicidade);
       setInicioOfertas(mockCiclo.inicio_ofertas);
       setFimOfertas(mockCiclo.fim_ofertas);
       setObservacoes(mockCiclo.observacoes);
@@ -129,24 +137,6 @@ const AdminCiclo = () => {
     }
   }, [id, isEdit]);
 
-  // Atualizar nome do ciclo automaticamente
-  useEffect(() => {
-    if (inicioOfertas) {
-      const nomeCalculado = calcularNomeCiclo(inicioOfertas, [
-        ...ciclosExistentes,
-        { inicio_ofertas: inicioOfertas, periodicidade },
-      ]);
-      setNome(nomeCalculado);
-    }
-  }, [inicioOfertas, periodicidade]);
-
-  // Calcular fim automaticamente baseado na periodicidade
-  useEffect(() => {
-    if (inicioOfertas && periodicidade) {
-      const fimCalculado = calcularFimOfertas(inicioOfertas, periodicidade);
-      setFimOfertas(fimCalculado);
-    }
-  }, [inicioOfertas, periodicidade]);
 
   // Drag & drop sensors
   const sensors = useSensors(
@@ -167,7 +157,25 @@ const AdminCiclo = () => {
   };
 
   const handleRemoveMercado = (id: string) => {
-    setMercados(mercados.filter(m => m.id !== id));
+    const filtered = mercados.filter(m => m.id !== id);
+    // Reindexar ordem após remover
+    const reindexed = filtered.map((m, index) => ({
+      ...m,
+      ordem_atendimento: index + 1,
+    }));
+    setMercados(reindexed);
+  };
+
+  const scrollToMercado = (mercadoId: string) => {
+    const element = document.getElementById(`mercado-${mercadoId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Highlight effect
+      element.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+      setTimeout(() => {
+        element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+      }, 2000);
+    }
   };
 
   const handleUpdateMercado = (id: string, field: string, value: any) => {
@@ -307,25 +315,10 @@ const AdminCiclo = () => {
                     placeholder="Ex: 1º Ciclo de Outubro 2025"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
-                    disabled
-                    className="bg-muted"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Nome gerado automaticamente baseado na data de início
+                    Nome gerado automaticamente baseado na data de início (editável)
                   </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="periodicidade">Periodicidade *</Label>
-                  <Select value={periodicidade} onValueChange={(v: Periodicidade) => setPeriodicidade(v)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="semanal">Semanal (7 dias)</SelectItem>
-                      <SelectItem value="quinzenal">Quinzenal (14 dias)</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -355,13 +348,17 @@ const AdminCiclo = () => {
                   </p>
                 ) : (
                   mercados.map((mercado) => (
-                     <Card key={mercado.id} className="border-2 border-primary/20">
+                     <Card 
+                       key={mercado.id} 
+                       id={`mercado-${mercado.id}`}
+                       className="border-2 border-primary/20 transition-all duration-300"
+                     >
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <CardTitle className="text-base">Mercado #{mercado.ordem_atendimento}</CardTitle>
                             {mercado.mercado_id && (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="secondary" className="text-xs">
                                 Admin: {getAdministradorMercado(mercado.mercado_id)}
                               </Badge>
                             )}
@@ -395,11 +392,12 @@ const AdminCiclo = () => {
                             </Select>
                           </div>
 
-                          <div>
+                           <div>
                             <Label>Tipo de Venda *</Label>
                             <Select
                               value={mercado.tipo_venda}
                               onValueChange={(value: TipoVenda) => handleUpdateMercado(mercado.id, 'tipo_venda', value)}
+                              disabled={mercado.mercado_id && getTiposVendaPermitidos(mercado.mercado_id).length === 1}
                             >
                               <SelectTrigger>
                                 <SelectValue />
@@ -673,9 +671,6 @@ const AdminCiclo = () => {
                       value={fimOfertas}
                       onChange={(e) => setFimOfertas(e.target.value)}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Calculado automaticamente (+{periodicidade === 'semanal' ? '7' : '14'} dias)
-                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -719,8 +714,8 @@ const AdminCiclo = () => {
             </Card>
           </div>
 
-          {/* Coluna Lateral - Ordenação */}
-          <div className="space-y-6">
+          {/* Coluna Lateral - Ordenação (Sticky) */}
+          <div className="space-y-6 lg:sticky lg:top-4 h-fit">
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
@@ -749,6 +744,7 @@ const AdminCiclo = () => {
                             key={mercado.id}
                             id={mercado.id}
                             mercado={mercado}
+                            onScroll={scrollToMercado}
                           />
                         ))}
                       </div>
@@ -801,9 +797,10 @@ const AdminCiclo = () => {
 interface SortableItemProps {
   id: string;
   mercado: MercadoCiclo;
+  onScroll: (id: string) => void;
 }
 
-function SortableItem({ id, mercado }: SortableItemProps) {
+function SortableItem({ id, mercado, onScroll }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -826,13 +823,20 @@ function SortableItem({ id, mercado }: SortableItemProps) {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 p-3 bg-background border rounded-lg cursor-move hover:border-primary/50 transition-colors"
-      {...attributes}
-      {...listeners}
+      className="flex items-center gap-2 p-3 bg-background border rounded-lg hover:border-primary/50 transition-colors group"
     >
-      <GripVertical className="h-4 w-4 text-muted-foreground" />
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium truncate">
+      <div
+        className="cursor-move"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </div>
+      <div 
+        className="flex-1 min-w-0 cursor-pointer"
+        onClick={() => onScroll(id)}
+      >
+        <div className="text-sm font-medium truncate group-hover:text-primary transition-colors">
           #{mercado.ordem_atendimento} – {nomeMercado || 'Selecione o mercado'}
         </div>
         {nomeMercado && (
