@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
 import { Button } from '@/components/ui/button';
@@ -15,15 +15,41 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, X, Info, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, Plus, X, Info, GripVertical, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatBRLInput, parseBRLToNumber, formatBRL } from '@/utils/currency';
+import { formatBRLInput, parseBRLToNumber } from '@/utils/currency';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
+  calcularNomeCiclo,
+  calcularFimOfertas,
+  getTiposVendaPermitidos,
+  getAdministradorMercado,
+  getNomeMercado,
+  getTipoVendaLabel,
+  Periodicidade,
+} from '@/utils/ciclo';
 
 type TipoVenda = 'cesta' | 'lote' | 'venda_direta';
 
@@ -56,11 +82,79 @@ const AdminCiclo = () => {
   const isEdit = !!id;
 
   const [nome, setNome] = useState('');
+  const [periodicidade, setPeriodicidade] = useState<Periodicidade>('semanal');
   const [inicioOfertas, setInicioOfertas] = useState('');
   const [fimOfertas, setFimOfertas] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [status, setStatus] = useState<'ativo' | 'inativo'>('ativo');
   const [mercados, setMercados] = useState<MercadoCiclo[]>([]);
+
+  // Mock data - em produção, buscar de uma API
+  const ciclosExistentes = [
+    { inicio_ofertas: '2025-10-13T00:00', periodicidade: 'semanal' as Periodicidade },
+    { inicio_ofertas: '2025-10-22T00:00', periodicidade: 'semanal' as Periodicidade },
+  ];
+
+  // Carregar dados do ciclo em modo de edição
+  useEffect(() => {
+    if (isEdit && id) {
+      // Mock data - substituir por API call
+      const mockCiclo = {
+        nome: '1º Ciclo de Outubro 2025',
+        periodicidade: 'semanal' as Periodicidade,
+        inicio_ofertas: '2025-10-13T08:00',
+        fim_ofertas: '2025-10-20T18:00',
+        observacoes: 'Ciclo de teste',
+        status: 'ativo' as 'ativo' | 'inativo',
+        mercados: [
+          {
+            id: '1',
+            mercado_id: '1',
+            tipo_venda: 'cesta' as TipoVenda,
+            ordem_atendimento: 1,
+            quantidade_cestas: 50,
+            valor_alvo_cesta: '45,00',
+            ponto_entrega: 'centro',
+          },
+        ],
+      };
+
+      setNome(mockCiclo.nome);
+      setPeriodicidade(mockCiclo.periodicidade);
+      setInicioOfertas(mockCiclo.inicio_ofertas);
+      setFimOfertas(mockCiclo.fim_ofertas);
+      setObservacoes(mockCiclo.observacoes);
+      setStatus(mockCiclo.status);
+      setMercados(mockCiclo.mercados);
+    }
+  }, [id, isEdit]);
+
+  // Atualizar nome do ciclo automaticamente
+  useEffect(() => {
+    if (inicioOfertas) {
+      const nomeCalculado = calcularNomeCiclo(inicioOfertas, [
+        ...ciclosExistentes,
+        { inicio_ofertas: inicioOfertas, periodicidade },
+      ]);
+      setNome(nomeCalculado);
+    }
+  }, [inicioOfertas, periodicidade]);
+
+  // Calcular fim automaticamente baseado na periodicidade
+  useEffect(() => {
+    if (inicioOfertas && periodicidade) {
+      const fimCalculado = calcularFimOfertas(inicioOfertas, periodicidade);
+      setFimOfertas(fimCalculado);
+    }
+  }, [inicioOfertas, periodicidade]);
+
+  // Drag & drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleAddMercado = () => {
     const newMercado: MercadoCiclo = {
@@ -77,9 +171,37 @@ const AdminCiclo = () => {
   };
 
   const handleUpdateMercado = (id: string, field: string, value: any) => {
-    setMercados(mercados.map(m => 
-      m.id === id ? { ...m, [field]: value } : m
-    ));
+    setMercados(mercados.map(m => {
+      if (m.id === id) {
+        // Se mudou o mercado, aplicar regras e resetar tipo de venda se necessário
+        if (field === 'mercado_id') {
+          const tiposPermitidos = getTiposVendaPermitidos(value);
+          const tipoAtual = m.tipo_venda;
+          const novoTipo = tiposPermitidos.includes(tipoAtual) ? tipoAtual : (tiposPermitidos[0] as TipoVenda);
+          return { ...m, [field]: value, tipo_venda: novoTipo };
+        }
+        return { ...m, [field]: value };
+      }
+      return m;
+    }));
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      setMercados((items) => {
+        const oldIndex = items.findIndex((m) => m.id === active.id);
+        const newIndex = items.findIndex((m) => m.id === over.id);
+        const reordered = arrayMove(items, oldIndex, newIndex);
+        
+        // Renumerar ordem_atendimento sequencialmente
+        return reordered.map((m, index) => ({
+          ...m,
+          ordem_atendimento: index + 1,
+        }));
+      });
+    }
   };
 
   const handleSubmit = () => {
@@ -182,10 +304,28 @@ const AdminCiclo = () => {
                   <Label htmlFor="nome">Nome do Ciclo *</Label>
                   <Input
                     id="nome"
-                    placeholder="Ex: Ciclo Primavera 2025"
+                    placeholder="Ex: 1º Ciclo de Outubro 2025"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
+                    disabled
+                    className="bg-muted"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Nome gerado automaticamente baseado na data de início
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="periodicidade">Periodicidade *</Label>
+                  <Select value={periodicidade} onValueChange={(v: Periodicidade) => setPeriodicidade(v)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="semanal">Semanal (7 dias)</SelectItem>
+                      <SelectItem value="quinzenal">Quinzenal (14 dias)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -215,10 +355,17 @@ const AdminCiclo = () => {
                   </p>
                 ) : (
                   mercados.map((mercado) => (
-                    <Card key={mercado.id} className="border-2 border-primary/20">
+                     <Card key={mercado.id} className="border-2 border-primary/20">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">Mercado #{mercado.ordem_atendimento}</CardTitle>
+                          <div className="flex items-center gap-2">
+                            <CardTitle className="text-base">Mercado #{mercado.ordem_atendimento}</CardTitle>
+                            {mercado.mercado_id && (
+                              <Badge variant="outline" className="text-xs">
+                                Admin: {getAdministradorMercado(mercado.mercado_id)}
+                              </Badge>
+                            )}
+                          </div>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -243,7 +390,7 @@ const AdminCiclo = () => {
                               <SelectContent>
                                 <SelectItem value="1">Mercado Central</SelectItem>
                                 <SelectItem value="2">Mercado Zona Norte</SelectItem>
-                                <SelectItem value="3">Mercado Sul</SelectItem>
+                                <SelectItem value="3">Feira Livre</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -258,11 +405,18 @@ const AdminCiclo = () => {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="cesta">🧺 Cesta</SelectItem>
-                                <SelectItem value="lote">📦 Lote</SelectItem>
-                                <SelectItem value="venda_direta">🏬 Venda Direta</SelectItem>
+                                {getTiposVendaPermitidos(mercado.mercado_id).map((tipo) => (
+                                  <SelectItem key={tipo} value={tipo}>
+                                    {getTipoVendaLabel(tipo)}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
+                            {mercado.mercado_id && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Tipos permitidos: {getTiposVendaPermitidos(mercado.mercado_id).map(t => getTipoVendaLabel(t).split(' ')[1]).join(', ')}
+                              </p>
+                            )}
                           </div>
                         </div>
 
@@ -519,6 +673,9 @@ const AdminCiclo = () => {
                       value={fimOfertas}
                       onChange={(e) => setFimOfertas(e.target.value)}
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Calculado automaticamente (+{periodicidade === 'semanal' ? '7' : '14'} dias)
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -562,12 +719,49 @@ const AdminCiclo = () => {
             </Card>
           </div>
 
-          {/* Coluna Lateral */}
+          {/* Coluna Lateral - Ordenação */}
           <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Ordem de Atendimento
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {mercados.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Adicione mercados para definir a ordem
+                  </p>
+                ) : (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={mercados.map(m => m.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-2">
+                        {mercados.map((mercado) => (
+                          <SortableItem
+                            key={mercado.id}
+                            id={mercado.id}
+                            mercado={mercado}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                )}
+              </CardContent>
+            </Card>
+
             <Card className="bg-gradient-to-br from-primary/5 to-accent/5">
               <CardContent className="pt-6 flex flex-col items-center text-center space-y-4">
                 <div className="p-4 bg-primary/10 rounded-full">
-                  <RefreshCcw className="h-12 w-12 text-primary" />
+                  <Calendar className="h-12 w-12 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Gestão de Ciclos</h3>
@@ -602,5 +796,53 @@ const AdminCiclo = () => {
     </ResponsiveLayout>
   );
 };
+
+// Componente Sortable Item para drag & drop
+interface SortableItemProps {
+  id: string;
+  mercado: MercadoCiclo;
+}
+
+function SortableItem({ id, mercado }: SortableItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const nomeMercado = getNomeMercado(mercado.mercado_id);
+  const tipoLabel = getTipoVendaLabel(mercado.tipo_venda);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 p-3 bg-background border rounded-lg cursor-move hover:border-primary/50 transition-colors"
+      {...attributes}
+      {...listeners}
+    >
+      <GripVertical className="h-4 w-4 text-muted-foreground" />
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium truncate">
+          #{mercado.ordem_atendimento} – {nomeMercado || 'Selecione o mercado'}
+        </div>
+        {nomeMercado && (
+          <div className="text-xs text-muted-foreground truncate">
+            {tipoLabel}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default AdminCiclo;

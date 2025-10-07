@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ArrowLeft, Search, Edit, Trash2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { formatarDataBR } from '@/utils/ciclo';
 
 interface Ciclo {
   id: string;
@@ -42,25 +42,35 @@ const AdminCicloIndex = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [cicloToDelete, setCicloToDelete] = useState<string | null>(null);
 
-  // Mock data - substituir por dados reais
-  const [ciclos, setCiclos] = useState<Ciclo[]>([
-    {
-      id: '1',
-      nome: 'Ciclo Primavera 2025',
-      inicio_ofertas: new Date('2025-09-10'),
-      fim_ofertas: new Date('2025-10-10'),
-      mercados_count: 3,
-      status: 'ativo'
-    },
-    {
-      id: '2',
-      nome: 'Ciclo Verão 2025',
-      inicio_ofertas: new Date('2025-11-01'),
-      fim_ofertas: new Date('2025-12-01'),
-      mercados_count: 5,
-      status: 'inativo'
-    }
-  ]);
+  // Mock data - ordenado por data de início (desc)
+  const [ciclos, setCiclos] = useState<Ciclo[]>(
+    [
+      {
+        id: '1',
+        nome: '1º Ciclo de Novembro 2025',
+        inicio_ofertas: new Date('2025-11-03'),
+        fim_ofertas: new Date('2025-11-18'),
+        mercados_count: 3,
+        status: 'ativo' as const
+      },
+      {
+        id: '2',
+        nome: '2º Ciclo de Outubro 2025',
+        inicio_ofertas: new Date('2025-10-22'),
+        fim_ofertas: new Date('2025-10-30'),
+        mercados_count: 2,
+        status: 'inativo' as const
+      },
+      {
+        id: '3',
+        nome: '1º Ciclo de Outubro 2025',
+        inicio_ofertas: new Date('2025-10-13'),
+        fim_ofertas: new Date('2025-10-20'),
+        mercados_count: 1,
+        status: 'inativo' as const
+      }
+    ].sort((a, b) => b.inicio_ofertas.getTime() - a.inicio_ofertas.getTime())
+  );
 
   const filteredCiclos = ciclos.filter(ciclo =>
     ciclo.nome.toLowerCase().includes(searchTerm.toLowerCase())
@@ -142,9 +152,9 @@ const AdminCicloIndex = () => {
                   <TableRow key={ciclo.id}>
                     <TableCell className="font-medium">{ciclo.nome}</TableCell>
                     <TableCell>
-                      {format(ciclo.inicio_ofertas, 'dd/MM/yyyy')} – {format(ciclo.fim_ofertas, 'dd/MM/yyyy')}
+                      {formatarDataBR(ciclo.inicio_ofertas)} – {formatarDataBR(ciclo.fim_ofertas)}
                     </TableCell>
-                    <TableCell>{ciclo.mercados_count} mercados</TableCell>
+                    <TableCell>{ciclo.mercados_count} mercado{ciclo.mercados_count !== 1 ? 's' : ''}</TableCell>
                     <TableCell>
                       <Badge
                         variant={ciclo.status === 'ativo' ? 'default' : 'secondary'}
@@ -190,10 +200,10 @@ const AdminCicloIndex = () => {
                   <div>
                     <h3 className="font-semibold">{ciclo.nome}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {format(ciclo.inicio_ofertas, 'dd/MM/yyyy')} – {format(ciclo.fim_ofertas, 'dd/MM/yyyy')}
+                      {formatarDataBR(ciclo.inicio_ofertas)} – {formatarDataBR(ciclo.fim_ofertas)}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {ciclo.mercados_count} mercados
+                      {ciclo.mercados_count} mercado{ciclo.mercados_count !== 1 ? 's' : ''}
                     </p>
                   </div>
                   <Badge
