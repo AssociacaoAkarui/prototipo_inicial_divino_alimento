@@ -40,7 +40,7 @@ type MarketType = {
   id: number;
   name: string;
   deliveryPoints: string[];
-  type: string;
+  types: string[];
   administratorId: number;
   administrativeFee: number | null;
   status: 'ativo' | 'inativo';
@@ -51,7 +51,7 @@ const mockMarkets: MarketType[] = [
     id: 1,
     name: 'Mercado Central',
     deliveryPoints: ['Centro', 'Zona Norte'],
-    type: 'cesta',
+    types: ['cesta'],
     administratorId: 1,
     administrativeFee: 5,
     status: 'ativo'
@@ -60,7 +60,7 @@ const mockMarkets: MarketType[] = [
     id: 2,
     name: 'Feira Livre',
     deliveryPoints: ['Bairro Alto', 'Vila Nova'],
-    type: 'venda_direta',
+    types: ['venda_direta'],
     administratorId: 2,
     administrativeFee: null,
     status: 'ativo'
@@ -75,7 +75,7 @@ const AdminMercados = () => {
   const [newMarket, setNewMarket] = useState({ 
     name: '', 
     deliveryPoints: [''], 
-    type: '',
+    types: [] as string[],
     administratorId: null as number | null,
     administrativeFee: null as number | null,
     status: 'ativo' as 'ativo' | 'inativo'
@@ -114,8 +114,19 @@ const AdminMercados = () => {
     return mockMarketAdministrators.find(admin => admin.id === id)?.name || '';
   };
 
-  const getMarketTypeLabel = (type: string) => {
-    return marketTypeOptions.find(option => option.value === type)?.label || '';
+  const getMarketTypeLabel = (types: string[]) => {
+    return types.map(type => 
+      marketTypeOptions.find(option => option.value === type)?.label || ''
+    ).filter(Boolean).join(', ');
+  };
+
+  const toggleMarketType = (typeValue: string) => {
+    setNewMarket(prev => {
+      const types = prev.types.includes(typeValue)
+        ? prev.types.filter(t => t !== typeValue)
+        : [...prev.types, typeValue];
+      return { ...prev, types };
+    });
   };
 
   const startEditMarket = (market: typeof mockMarkets[0]) => {
@@ -157,10 +168,10 @@ const AdminMercados = () => {
       return;
     }
 
-    if (!newMarket.type) {
+    if (newMarket.types.length === 0) {
       toast({
         title: "Erro",
-        description: "Selecione o tipo de mercado",
+        description: "Selecione ao menos um tipo de mercado",
         variant: "destructive"
       });
       return;
@@ -198,14 +209,14 @@ const AdminMercados = () => {
       id: markets.length + 1,
       name: newMarket.name,
       deliveryPoints: validDeliveryPoints,
-      type: newMarket.type,
+      types: newMarket.types,
       administratorId: newMarket.administratorId,
       administrativeFee: newMarket.administrativeFee,
       status: newMarket.status
     };
 
     setMarkets([...markets, market]);
-    setNewMarket({ name: '', deliveryPoints: [''], type: '', administratorId: null, administrativeFee: null, status: 'ativo' });
+    setNewMarket({ name: '', deliveryPoints: [''], types: [], administratorId: null, administrativeFee: null, status: 'ativo' });
     setIsDialogOpen(false);
     setSelectedMarket(market);
     
@@ -477,26 +488,37 @@ const AdminMercados = () => {
                     </div>
 
                     <div>
-                      <Label>Tipo de Mercado</Label>
+                      <Label>Tipos de Mercado</Label>
                       {isEditingMarket ? (
-                        <Select
-                          value={editData?.type || ''}
-                          onValueChange={(value) => setEditData(prev => prev ? { ...prev, type: value } : null)}
-                        >
-                          <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {marketTypeOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
+                        <div className="mt-2 space-y-3">
+                          {marketTypeOptions.map((option) => (
+                            <div key={option.value} className="flex items-center space-x-3">
+                              <Checkbox
+                                id={`edit-market-type-${option.value}`}
+                                checked={editData?.types.includes(option.value) || false}
+                                onCheckedChange={() => {
+                                  setEditData(prev => {
+                                    if (!prev) return null;
+                                    const types = prev.types.includes(option.value)
+                                      ? prev.types.filter(t => t !== option.value)
+                                      : [...prev.types, option.value];
+                                    return { ...prev, types };
+                                  });
+                                }}
+                                className="h-5 w-5"
+                              />
+                              <Label
+                                htmlFor={`edit-market-type-${option.value}`}
+                                className="text-sm font-normal cursor-pointer flex-1"
+                              >
                                 {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
                       ) : (
                         <div className="mt-2 p-3 bg-muted/30 rounded-lg border">
-                          <span className="text-sm font-medium">{getMarketTypeLabel(selectedMarket.type)}</span>
+                          <span className="text-sm font-medium">{getMarketTypeLabel(selectedMarket.types)}</span>
                         </div>
                       )}
                     </div>
@@ -730,25 +752,28 @@ const AdminMercados = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="marketType" className="text-sm font-medium">
-                    Tipo de Mercado *
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">
+                    Tipos de Mercado * <span className="text-muted-foreground text-xs">(selecione um ou mais)</span>
                   </Label>
-                  <Select
-                    value={newMarket.type}
-                    onValueChange={(value) => setNewMarket(prev => ({ ...prev, type: value }))}
-                  >
-                    <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {marketTypeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
+                  <div className="space-y-3">
+                    {marketTypeOptions.map((option) => (
+                      <div key={option.value} className="flex items-center space-x-3">
+                        <Checkbox
+                          id={`market-type-${option.value}`}
+                          checked={newMarket.types.includes(option.value)}
+                          onCheckedChange={() => toggleMarketType(option.value)}
+                          className="h-5 w-5"
+                        />
+                        <Label
+                          htmlFor={`market-type-${option.value}`}
+                          className="text-sm font-normal cursor-pointer flex-1"
+                        >
                           {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -881,7 +906,7 @@ const AdminMercados = () => {
                 variant="outline" 
                 onClick={() => {
                   setIsDialogOpen(false);
-                  setNewMarket({ name: '', deliveryPoints: [''], type: '', administratorId: null, administrativeFee: null, status: 'ativo' });
+                  setNewMarket({ name: '', deliveryPoints: [''], types: [], administratorId: null, administrativeFee: null, status: 'ativo' });
                 }}
                 className="px-6 h-12 border-primary text-primary hover:bg-primary/10"
               >
