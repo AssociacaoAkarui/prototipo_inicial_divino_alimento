@@ -701,7 +701,7 @@ const AdminMercados = () => {
 
       {/* New Market Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="w-[min(960px,92vw)] max-h-[80vh] flex flex-col p-0">
+        <DialogContent className="w-[min(1280px,95vw)] max-h-[85vh] flex flex-col p-0">
           {/* Fixed Header */}
           <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b">
             <DialogTitle className="text-xl font-semibold">Novo Mercado</DialogTitle>
