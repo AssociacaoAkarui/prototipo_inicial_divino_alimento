@@ -708,11 +708,11 @@ const AdminMercados = () => {
           </DialogHeader>
           
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto px-6 py-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-full">
               
               {/* Left Column - Basic Information */}
-              <div className="space-y-4">
+              <div className="space-y-4 min-w-0">
                 <h4 className="font-semibold text-foreground border-b pb-2 mb-4">
                   Informações Básicas
                 </h4>
@@ -821,7 +821,7 @@ const AdminMercados = () => {
               </div>
 
               {/* Right Column - Delivery Points */}
-              <div className="space-y-4">
+              <div className="space-y-4 min-w-0">
                 <h4 className="font-semibold text-foreground border-b pb-2 mb-4">
                   Locais de Entrega
                 </h4>
@@ -875,7 +875,7 @@ const AdminMercados = () => {
           </div>
 
           {/* Fixed Footer */}
-          <div className="flex-shrink-0 px-6 py-4 border-t bg-background shadow-lg">
+          <div className="flex-shrink-0 px-4 py-4 border-t bg-background shadow-lg">
             <div className="flex justify-end space-x-3">
               <Button 
                 variant="outline" 
