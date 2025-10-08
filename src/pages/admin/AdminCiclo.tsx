@@ -83,7 +83,15 @@ const AdminCiclo = () => {
   const [fimOfertas, setFimOfertas] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [status, setStatus] = useState<'ativo' | 'inativo'>('ativo');
+  const [administradorResponsavel, setAdministradorResponsavel] = useState('');
   const [mercados, setMercados] = useState<MercadoCiclo[]>([]);
+
+  // Lista de administradores disponíveis
+  const administradoresDisponiveis = [
+    { id: '1', nome: 'João Silva', mercado: 'Mercado Central' },
+    { id: '2', nome: 'Anna Cardoso', mercado: 'Mercado Zona Norte' },
+    { id: '3', nome: 'Maria Santos', mercado: 'Feira Livre' },
+  ];
 
   // Carregar dados do ciclo em modo de edição e preencher com 3 mercados
   useEffect(() => {
@@ -95,6 +103,7 @@ const AdminCiclo = () => {
         fim_ofertas: '2025-10-20T18:00',
         observacoes: 'Ciclo de teste',
         status: 'ativo' as 'ativo' | 'inativo',
+        administrador_responsavel: '1', // João Silva
         mercados: [] as MercadoCiclo[],
       };
 
@@ -133,6 +142,7 @@ const AdminCiclo = () => {
       setFimOfertas(mockCiclo.fim_ofertas);
       setObservacoes(mockCiclo.observacoes);
       setStatus(mockCiclo.status);
+      setAdministradorResponsavel(mockCiclo.administrador_responsavel);
       setMercados(mockCiclo.mercados);
     }
   }, [id, isEdit]);
@@ -216,6 +226,11 @@ const AdminCiclo = () => {
     // Validações
     if (!nome || nome.length < 3) {
       toast.error('Nome do ciclo é obrigatório (mín. 3 caracteres).');
+      return;
+    }
+
+    if (!administradorResponsavel) {
+      toast.error('Selecione o administrador responsável pelo ciclo.');
       return;
     }
 
@@ -318,6 +333,31 @@ const AdminCiclo = () => {
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     Nome gerado automaticamente baseado na data de início (editável)
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="administrador">Administrador Responsável *</Label>
+                  <Select
+                    value={administradorResponsavel}
+                    onValueChange={setAdministradorResponsavel}
+                  >
+                    <SelectTrigger id="administrador">
+                      <SelectValue placeholder="Selecione o administrador" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {administradoresDisponiveis.map((admin) => (
+                        <SelectItem key={admin.id} value={admin.id}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{admin.nome}</span>
+                            <span className="text-xs text-muted-foreground">{admin.mercado}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Responsável por supervisionar e gerenciar este ciclo
                   </p>
                 </div>
               </CardContent>
