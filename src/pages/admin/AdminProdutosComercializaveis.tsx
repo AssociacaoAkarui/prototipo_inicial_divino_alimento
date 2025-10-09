@@ -21,14 +21,16 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
-interface Produto {
+interface ProdutoComercializavel {
   id: string;
-  nome: string;
-  categoria: string;
+  produto_base: string;
+  unidade: string;
+  peso_kg: number;
+  preco_base: number;
   status: 'Ativo' | 'Inativo';
 }
 
-const AdminProdutos = () => {
+const AdminProdutosComercializaveis = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { 
@@ -41,38 +43,61 @@ const AdminProdutos = () => {
     hasActiveFilters,
     isOpen,
     setIsOpen 
-  } = useFilters('/admin/produtos');
+  } = useFilters('/admin/produtos-comercializaveis');
 
-  const [produtos, setProdutos] = useState<Produto[]>([
-    { id: '1', nome: 'Tomate Orgânico', categoria: 'Hortaliças', status: 'Ativo' },
-    { id: '2', nome: 'Ovos Caipiras', categoria: 'Derivados', status: 'Ativo' },
-    { id: '3', nome: 'Mel Orgânico', categoria: 'Derivados', status: 'Inativo' },
-    { id: '4', nome: 'Alface Crespa', categoria: 'Hortaliças', status: 'Ativo' },
-    { id: '5', nome: 'Banana Prata', categoria: 'Frutas', status: 'Ativo' }
+  const [produtos, setProdutos] = useState<ProdutoComercializavel[]>([
+    { 
+      id: '1', 
+      produto_base: 'Tomate Orgânico', 
+      unidade: 'kg', 
+      peso_kg: 1,
+      preco_base: 7.50,
+      status: 'Ativo'
+    },
+    { 
+      id: '2', 
+      produto_base: 'Ovos Caipiras', 
+      unidade: 'duzia', 
+      peso_kg: 0.6,
+      preco_base: 15.00,
+      status: 'Ativo'
+    },
+    { 
+      id: '3', 
+      produto_base: 'Mel Orgânico', 
+      unidade: 'litro', 
+      peso_kg: 1.4,
+      preco_base: 28.90,
+      status: 'Inativo'
+    }
   ]);
 
-  const categorias = useMemo(() => {
-    return Array.from(new Set(produtos.map(p => p.categoria)));
+  // Lista de produtos base únicos para o filtro
+  const produtosBase = useMemo(() => {
+    return Array.from(new Set(produtos.map(p => p.produto_base)));
   }, [produtos]);
 
   const filteredProdutos = useMemo(() => {
     let result = [...produtos];
 
+    // Aplicar busca
     if (filters.search) {
       result = result.filter(produto =>
-        produto.nome.toLowerCase().includes(filters.search.toLowerCase())
+        produto.produto_base.toLowerCase().includes(filters.search.toLowerCase())
       );
     }
 
+    // Aplicar filtro de status
     if (filters.status.length > 0) {
       result = result.filter(produto => 
         filters.status.includes(produto.status)
       );
     }
 
-    if (filters.categoria.length > 0) {
+    // Aplicar filtro de produto base
+    if (filters.produtoBase.length > 0) {
       result = result.filter(produto =>
-        filters.categoria.includes(produto.categoria)
+        filters.produtoBase.includes(produto.produto_base)
       );
     }
 
@@ -80,19 +105,20 @@ const AdminProdutos = () => {
   }, [produtos, filters]);
 
   const handleEdit = (id: string) => {
-    navigate(`/admin/produto/${id}`);
+    navigate(`/admin/produto-comercializavel/${id}`);
   };
 
   const handleDelete = (id: string) => {
     setProdutos(prev => prev.filter(p => p.id !== id));
+    
     toast({
       title: "Produto excluído",
-      description: "O produto foi removido com sucesso.",
+      description: "O produto comercializável foi removido com sucesso.",
     });
   };
 
   const handleAddProduto = () => {
-    navigate('/admin/produto');
+    navigate('/admin/produto-comercializavel');
   };
 
   return (
@@ -109,17 +135,19 @@ const AdminProdutos = () => {
       }
     >
       <div className="space-y-6 md:space-y-8">
+        {/* Header */}
         <div className="md:flex md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
-              Produtos
+              Produtos Comercializáveis
             </h1>
             <p className="text-sm md:text-base text-muted-foreground">
-              Gerencie produtos base cadastrados no sistema
+              Gerencie produtos comercializáveis com preços e unidades
             </p>
           </div>
         </div>
 
+        {/* Filtros e Busca */}
         <div className="flex gap-4">
           <div className="flex-1">
             <FiltersBar
@@ -139,6 +167,7 @@ const AdminProdutos = () => {
           </Button>
         </div>
 
+        {/* Products Table */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg md:text-xl">
@@ -164,8 +193,10 @@ const AdminProdutos = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nome do Produto</TableHead>
-                      <TableHead>Categoria</TableHead>
+                      <TableHead>Produto Base</TableHead>
+                      <TableHead>Unidade</TableHead>
+                      <TableHead>Peso (kg)</TableHead>
+                      <TableHead>Preço Base</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
@@ -173,10 +204,16 @@ const AdminProdutos = () => {
                   <TableBody>
                     {filteredProdutos.map((produto) => (
                       <TableRow key={produto.id}>
-                        <TableCell className="font-medium">{produto.nome}</TableCell>
-                        <TableCell>{produto.categoria}</TableCell>
+                        <TableCell className="font-medium">
+                          {produto.produto_base}
+                        </TableCell>
+                        <TableCell>{produto.unidade}</TableCell>
+                        <TableCell>{produto.peso_kg} kg</TableCell>
+                        <TableCell>R$ {produto.preco_base.toFixed(2)}</TableCell>
                         <TableCell>
-                          <Badge variant={produto.status === 'Ativo' ? 'success' : 'warning'}>
+                          <Badge 
+                            variant={produto.status === 'Ativo' ? 'success' : 'warning'}
+                          >
                             {produto.status}
                           </Badge>
                         </TableCell>
@@ -232,6 +269,7 @@ const AdminProdutos = () => {
         </Card>
       </div>
 
+      {/* Painel de Filtros */}
       <FiltersPanel
         open={isOpen}
         onOpenChange={setIsOpen}
@@ -248,7 +286,10 @@ const AdminProdutos = () => {
                   checked={filters.status.includes(status)}
                   onCheckedChange={() => toggleArrayValue('status', status)}
                 />
-                <label htmlFor={`status-${status}`} className="text-sm font-medium cursor-pointer">
+                <label
+                  htmlFor={`status-${status}`}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
                   {status}
                 </label>
               </div>
@@ -257,17 +298,20 @@ const AdminProdutos = () => {
         </div>
 
         <div className="space-y-4">
-          <Label>Categoria</Label>
+          <Label>Produto Base</Label>
           <div className="space-y-2">
-            {categorias.map((categoria) => (
-              <div key={categoria} className="flex items-center space-x-2">
+            {produtosBase.map((produtoBase) => (
+              <div key={produtoBase} className="flex items-center space-x-2">
                 <Checkbox
-                  id={`categoria-${categoria}`}
-                  checked={filters.categoria.includes(categoria)}
-                  onCheckedChange={() => toggleArrayValue('categoria', categoria)}
+                  id={`produto-${produtoBase}`}
+                  checked={filters.produtoBase.includes(produtoBase)}
+                  onCheckedChange={() => toggleArrayValue('produtoBase', produtoBase)}
                 />
-                <label htmlFor={`categoria-${categoria}`} className="text-sm font-medium cursor-pointer">
-                  {categoria}
+                <label
+                  htmlFor={`produto-${produtoBase}`}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  {produtoBase}
                 </label>
               </div>
             ))}
@@ -278,4 +322,4 @@ const AdminProdutos = () => {
   );
 };
 
-export default AdminProdutos;
+export default AdminProdutosComercializaveis;

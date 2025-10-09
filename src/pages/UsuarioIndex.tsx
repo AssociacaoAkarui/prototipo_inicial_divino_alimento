@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
+import { FiltersBar } from '@/components/admin/FiltersBar';
+import { FiltersPanel } from '@/components/admin/FiltersPanel';
+import { useFilters } from '@/hooks/useFilters';
 import { 
   Search, 
   Plus, 
@@ -27,70 +32,64 @@ interface Usuario {
 const UsuarioIndex = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
+  const { 
+    filters, 
+    updateFilter, 
+    toggleArrayValue, 
+    clearFilters, 
+    clearFilterGroup,
+    getActiveChips, 
+    hasActiveFilters,
+    isOpen,
+    setIsOpen 
+  } = useFilters('/usuario-index');
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuth');
     navigate('/');
   };
 
-  // Mock data for users
-  const usuarios: Usuario[] = [
-    { 
-      id: '1', 
-      nomeCompleto: 'João Silva', 
-      email: 'joao@email.com', 
-      status: 'Ativo',
-      perfis: ['Fornecedor', 'Administrador']
-    },
-    { 
-      id: '2', 
-      nomeCompleto: 'Maria Santos', 
-      email: 'maria@email.com', 
-      status: 'Ativo',
-      perfis: ['Consumidor']
-    },
-    { 
-      id: '3', 
-      nomeCompleto: 'Pedro Costa', 
-      email: 'pedro@email.com', 
-      status: 'Inativo',
-      perfis: ['Fornecedor']
-    },
-    { 
-      id: '4', 
-      nomeCompleto: 'Ana Oliveira', 
-      email: 'ana@email.com', 
-      status: 'Ativo',
-      perfis: ['Consumidor', 'Fornecedor']
-    },
-    { 
-      id: '5', 
-      nomeCompleto: 'Carlos Pereira', 
-      email: 'carlos@email.com', 
-      status: 'Ativo',
-      perfis: ['Administrador']
-    },
-    { 
-      id: '6', 
-      nomeCompleto: 'Fernanda Lima', 
-      email: 'fernanda@email.com', 
-      status: 'Ativo',
-      perfis: ['Administrador de Mercado']
-    },
-  ];
+  const [usuarios] = useState<Usuario[]>([
+    { id: '1', nomeCompleto: 'João Silva', email: 'joao@email.com', status: 'Ativo', perfis: ['Fornecedor', 'Administrador'] },
+    { id: '2', nomeCompleto: 'Maria Santos', email: 'maria@email.com', status: 'Ativo', perfis: ['Consumidor'] },
+    { id: '3', nomeCompleto: 'Pedro Costa', email: 'pedro@email.com', status: 'Inativo', perfis: ['Fornecedor'] },
+    { id: '4', nomeCompleto: 'Ana Oliveira', email: 'ana@email.com', status: 'Ativo', perfis: ['Consumidor', 'Fornecedor'] },
+    { id: '5', nomeCompleto: 'Carlos Pereira', email: 'carlos@email.com', status: 'Ativo', perfis: ['Administrador'] },
+    { id: '6', nomeCompleto: 'Fernanda Lima', email: 'fernanda@email.com', status: 'Ativo', perfis: ['Administrador de Mercado'] },
+  ]);
 
-  const filteredUsers = usuarios.filter(usuario => 
-    usuario.nomeCompleto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const perfisDisponiveis = ['Administrador', 'Administrador de Mercado', 'Fornecedor', 'Consumidor'];
+
+  const filteredUsers = useMemo(() => {
+    let result = [...usuarios];
+
+    if (filters.search) {
+      result = result.filter(usuario =>
+        usuario.nomeCompleto.toLowerCase().includes(filters.search.toLowerCase()) ||
+        usuario.email.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    if (filters.status.length > 0) {
+      result = result.filter(usuario => 
+        filters.status.includes(usuario.status)
+      );
+    }
+
+    if (filters.perfis.length > 0) {
+      result = result.filter(usuario =>
+        usuario.perfis.some(perfil => filters.perfis.includes(perfil))
+      );
+    }
+
+    return result;
+  }, [usuarios, filters]);
 
   const handleEdit = (id: string) => {
     navigate(`/usuario/${id}`);
   };
 
   const handleDelete = (id: string) => {
-    // Simular exclusão
     toast({
       title: "Usuário excluído",
       description: "O usuário foi removido com sucesso.",
@@ -115,7 +114,6 @@ const UsuarioIndex = () => {
       }
     >
       <div className="space-y-6 md:space-y-8">
-        {/* Header */}
         <div className="md:flex md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
@@ -127,38 +125,44 @@ const UsuarioIndex = () => {
           </div>
         </div>
 
-        {/* Search and Actions */}
-        <Card>
-          <CardHeader className="pb-4">
-            <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="Buscar usuário por nome ou e-mail..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Button onClick={handleAddUser} className="w-full md:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Usuário
-              </Button>
-            </div>
-          </CardHeader>
-        </Card>
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <FiltersBar
+              searchValue={filters.search}
+              onSearchChange={(value) => updateFilter('search', value)}
+              onFiltersClick={() => setIsOpen(true)}
+              activeChips={getActiveChips()}
+              onRemoveChip={clearFilterGroup}
+              resultCount={filteredUsers.length}
+              hasActiveFilters={hasActiveFilters()}
+              filtersOpen={isOpen}
+            />
+          </div>
+          <Button onClick={handleAddUser} className="whitespace-nowrap">
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Usuário
+          </Button>
+        </div>
 
-        {/* Users Table */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg md:text-xl">
-              Lista de Usuários ({filteredUsers.length})
+              Lista de Usuários
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {filteredUsers.length === 0 ? (
-              <div className="p-6 text-center text-muted-foreground">
-                {searchTerm ? 'Nenhum usuário encontrado.' : 'Nenhum usuário cadastrado.'}
+              <div className="p-6 text-center space-y-4">
+                <p className="text-muted-foreground">
+                  {hasActiveFilters() 
+                    ? 'Sem resultados para os filtros selecionados.' 
+                    : 'Nenhum usuário cadastrado.'}
+                </p>
+                {hasActiveFilters() && (
+                  <Button variant="outline" onClick={clearFilters}>
+                    Limpar filtros
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -175,9 +179,7 @@ const UsuarioIndex = () => {
                   <TableBody>
                     {filteredUsers.map((usuario) => (
                       <TableRow key={usuario.id}>
-                        <TableCell className="font-medium">
-                          {usuario.nomeCompleto}
-                        </TableCell>
+                        <TableCell className="font-medium">{usuario.nomeCompleto}</TableCell>
                         <TableCell>{usuario.email}</TableCell>
                         <TableCell>
                           <Badge 
@@ -247,6 +249,49 @@ const UsuarioIndex = () => {
           </CardContent>
         </Card>
       </div>
+
+      <FiltersPanel
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        onApply={() => {}}
+        onClear={clearFilters}
+      >
+        <div className="space-y-4">
+          <Label>Status</Label>
+          <div className="space-y-2">
+            {['Ativo', 'Inativo'].map((status) => (
+              <div key={status} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`status-${status}`}
+                  checked={filters.status.includes(status)}
+                  onCheckedChange={() => toggleArrayValue('status', status)}
+                />
+                <label htmlFor={`status-${status}`} className="text-sm font-medium cursor-pointer">
+                  {status}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <Label>Perfis</Label>
+          <div className="space-y-2">
+            {perfisDisponiveis.map((perfil) => (
+              <div key={perfil} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`perfil-${perfil}`}
+                  checked={filters.perfis.includes(perfil)}
+                  onCheckedChange={() => toggleArrayValue('perfis', perfil)}
+                />
+                <label htmlFor={`perfil-${perfil}`} className="text-sm font-medium cursor-pointer">
+                  {perfil}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FiltersPanel>
     </ResponsiveLayout>
   );
 };

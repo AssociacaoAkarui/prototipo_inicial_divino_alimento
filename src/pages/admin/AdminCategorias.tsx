@@ -1,10 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
+import { FiltersBar } from '@/components/admin/FiltersBar';
+import { FiltersPanel } from '@/components/admin/FiltersPanel';
+import { useFilters } from '@/hooks/useFilters';
 import { 
   Search, 
   Plus, 
@@ -34,11 +39,21 @@ interface Categoria {
 const AdminCategorias = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
+  const { 
+    filters, 
+    updateFilter, 
+    toggleArrayValue, 
+    clearFilters, 
+    clearFilterGroup,
+    getActiveChips, 
+    hasActiveFilters,
+    isOpen,
+    setIsOpen 
+  } = useFilters('/admin/categorias');
+  
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoriaToDelete, setCategoriaToDelete] = useState<Categoria | null>(null);
 
-  // Mock data
   const [categorias, setCategorias] = useState<Categoria[]>([
     { id: 1, nome: 'Frutas', situacao: 'Ativo' },
     { id: 2, nome: 'Verduras', situacao: 'Ativo' },
@@ -48,10 +63,22 @@ const AdminCategorias = () => {
   ]);
 
   const filteredCategorias = useMemo(() => {
-    return categorias.filter(categoria =>
-      categoria.nome.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [categorias, searchTerm]);
+    let result = [...categorias];
+
+    if (filters.search) {
+      result = result.filter(categoria =>
+        categoria.nome.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    if (filters.status.length > 0) {
+      result = result.filter(categoria => 
+        filters.status.includes(categoria.situacao)
+      );
+    }
+
+    return result;
+  }, [categorias, filters]);
 
   const handleEdit = (id: number) => {
     navigate(`/admin/categorias/${id}`);
@@ -88,7 +115,6 @@ const AdminCategorias = () => {
       }
     >
       <div className="space-y-6 md:space-y-8">
-        {/* Header */}
         <div className="md:flex md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gradient-primary">
@@ -100,38 +126,44 @@ const AdminCategorias = () => {
           </div>
         </div>
 
-        {/* Search and Actions */}
-        <Card>
-          <CardHeader className="pb-4">
-            <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="Buscar categoria..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Button onClick={() => navigate('/admin/categorias/novo')} className="w-full md:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Categoria
-              </Button>
-            </div>
-          </CardHeader>
-        </Card>
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <FiltersBar
+              searchValue={filters.search}
+              onSearchChange={(value) => updateFilter('search', value)}
+              onFiltersClick={() => setIsOpen(true)}
+              activeChips={getActiveChips()}
+              onRemoveChip={clearFilterGroup}
+              resultCount={filteredCategorias.length}
+              hasActiveFilters={hasActiveFilters()}
+              filtersOpen={isOpen}
+            />
+          </div>
+          <Button onClick={() => navigate('/admin/categorias/novo')} className="whitespace-nowrap">
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Categoria
+          </Button>
+        </div>
 
-        {/* Categories Table */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg md:text-xl">
-              Lista de Categorias ({filteredCategorias.length})
+              Lista de Categorias
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {filteredCategorias.length === 0 ? (
-              <div className="p-6 text-center text-muted-foreground">
-                {searchTerm ? 'Nenhuma categoria encontrada.' : 'Nenhuma categoria cadastrada.'}
+              <div className="p-6 text-center space-y-4">
+                <p className="text-muted-foreground">
+                  {hasActiveFilters() 
+                    ? 'Sem resultados para os filtros selecionados.' 
+                    : 'Nenhuma categoria cadastrada.'}
+                </p>
+                {hasActiveFilters() && (
+                  <Button variant="outline" onClick={clearFilters}>
+                    Limpar filtros
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -189,7 +221,31 @@ const AdminCategorias = () => {
         </Card>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      <FiltersPanel
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        onApply={() => {}}
+        onClear={clearFilters}
+      >
+        <div className="space-y-4">
+          <Label>Status</Label>
+          <div className="space-y-2">
+            {['Ativo', 'Inativo'].map((status) => (
+              <div key={status} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`status-${status}`}
+                  checked={filters.status.includes(status)}
+                  onCheckedChange={() => toggleArrayValue('status', status)}
+                />
+                <label htmlFor={`status-${status}`} className="text-sm font-medium cursor-pointer">
+                  {status}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FiltersPanel>
+
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
