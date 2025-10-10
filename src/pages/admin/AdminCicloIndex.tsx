@@ -30,7 +30,8 @@ interface Ciclo {
 export default function AdminCicloIndex() {
   const navigate = useNavigate();
   const { 
-    filters, 
+    filters,
+    debouncedSearch,
     updateFilter, 
     toggleArrayValue, 
     clearFilters, 
@@ -52,8 +53,8 @@ export default function AdminCicloIndex() {
   const filteredCiclos = useMemo(() => {
     let result = [...ciclos];
 
-    if (filters.search) {
-      result = result.filter(ciclo => ciclo.nome.toLowerCase().includes(filters.search.toLowerCase()));
+    if (debouncedSearch) {
+      result = result.filter(ciclo => ciclo.nome.toLowerCase().includes(debouncedSearch.toLowerCase()));
     }
 
     if (filters.status.length > 0) {
@@ -61,7 +62,7 @@ export default function AdminCicloIndex() {
     }
 
     return result.sort((a, b) => new Date(b.inicio_ofertas).getTime() - new Date(a.inicio_ofertas).getTime());
-  }, [ciclos, filters]);
+  }, [ciclos, filters, debouncedSearch]);
 
   const handleDelete = (id: string) => {
     setCicloToDelete(id);

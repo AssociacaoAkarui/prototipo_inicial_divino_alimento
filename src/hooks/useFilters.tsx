@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export interface FilterChip {
   group: string;
@@ -36,11 +36,30 @@ export function useFilters(routeKey: string) {
   });
 
   const [isOpen, setIsOpen] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Salvar no sessionStorage sempre que mudar
   useEffect(() => {
     sessionStorage.setItem(storageKey, JSON.stringify(filters));
   }, [filters, storageKey]);
+
+  // Debounce para busca (400ms)
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearch(filters.search);
+    }, 400);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [filters.search]);
 
   const updateFilter = useCallback((key: keyof FilterState, value: string | string[]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -94,6 +113,7 @@ export function useFilters(routeKey: string) {
 
   return {
     filters,
+    debouncedSearch,
     updateFilter,
     toggleArrayValue,
     clearFilters,

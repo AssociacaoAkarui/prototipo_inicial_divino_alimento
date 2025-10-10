@@ -40,7 +40,8 @@ const AdminCategorias = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { 
-    filters, 
+    filters,
+    debouncedSearch,
     updateFilter, 
     toggleArrayValue, 
     clearFilters, 
@@ -65,9 +66,9 @@ const AdminCategorias = () => {
   const filteredCategorias = useMemo(() => {
     let result = [...categorias];
 
-    if (filters.search) {
+    if (debouncedSearch) {
       result = result.filter(categoria =>
-        categoria.nome.toLowerCase().includes(filters.search.toLowerCase())
+        categoria.nome.toLowerCase().includes(debouncedSearch.toLowerCase())
       );
     }
 
@@ -78,7 +79,7 @@ const AdminCategorias = () => {
     }
 
     return result;
-  }, [categorias, filters]);
+  }, [categorias, filters, debouncedSearch]);
 
   const handleEdit = (id: number) => {
     navigate(`/admin/categorias/${id}`);

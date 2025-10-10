@@ -34,7 +34,8 @@ const AdminProdutosComercializaveis = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { 
-    filters, 
+    filters,
+    debouncedSearch,
     updateFilter, 
     toggleArrayValue, 
     clearFilters, 
@@ -80,10 +81,10 @@ const AdminProdutosComercializaveis = () => {
   const filteredProdutos = useMemo(() => {
     let result = [...produtos];
 
-    // Aplicar busca
-    if (filters.search) {
+    // Aplicar busca com debounce
+    if (debouncedSearch) {
       result = result.filter(produto =>
-        produto.produto_base.toLowerCase().includes(filters.search.toLowerCase())
+        produto.produto_base.toLowerCase().includes(debouncedSearch.toLowerCase())
       );
     }
 
@@ -102,7 +103,7 @@ const AdminProdutosComercializaveis = () => {
     }
 
     return result;
-  }, [produtos, filters]);
+  }, [produtos, filters, debouncedSearch]);
 
   const handleEdit = (id: string) => {
     navigate(`/admin/produto-comercializavel/${id}`);

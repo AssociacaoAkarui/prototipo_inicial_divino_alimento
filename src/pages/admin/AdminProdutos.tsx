@@ -32,7 +32,8 @@ const AdminProdutos = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { 
-    filters, 
+    filters,
+    debouncedSearch,
     updateFilter, 
     toggleArrayValue, 
     clearFilters, 
@@ -58,9 +59,9 @@ const AdminProdutos = () => {
   const filteredProdutos = useMemo(() => {
     let result = [...produtos];
 
-    if (filters.search) {
+    if (debouncedSearch) {
       result = result.filter(produto =>
-        produto.nome.toLowerCase().includes(filters.search.toLowerCase())
+        produto.nome.toLowerCase().includes(debouncedSearch.toLowerCase())
       );
     }
 
@@ -77,7 +78,7 @@ const AdminProdutos = () => {
     }
 
     return result;
-  }, [produtos, filters]);
+  }, [produtos, filters, debouncedSearch]);
 
   const handleEdit = (id: string) => {
     navigate(`/admin/produto/${id}`);

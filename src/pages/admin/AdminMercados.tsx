@@ -74,7 +74,8 @@ const AdminMercados = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { 
-    filters, 
+    filters,
+    debouncedSearch,
     updateFilter, 
     toggleArrayValue, 
     clearFilters, 
@@ -169,11 +170,11 @@ const AdminMercados = () => {
   const filteredMarkets = useMemo(() => {
     let result = [...markets];
 
-    // Aplicar busca
-    if (filters.search) {
+    // Aplicar busca com debounce
+    if (debouncedSearch) {
       result = result.filter(market =>
-        market.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-        market.deliveryPoints.some(point => point.toLowerCase().includes(filters.search.toLowerCase()))
+        market.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        market.deliveryPoints.some(point => point.toLowerCase().includes(debouncedSearch.toLowerCase()))
       );
     }
 
@@ -190,7 +191,7 @@ const AdminMercados = () => {
     }
 
     return result;
-  }, [markets, filters]);
+  }, [markets, filters, debouncedSearch]);
 
   const saveMarket = () => {
     // Validações

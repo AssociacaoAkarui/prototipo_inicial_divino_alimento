@@ -23,7 +23,8 @@ import { mercadosLocais } from "@/data/mercados-locais";
 export default function AdminPrecosLista() {
   const navigate = useNavigate();
   const { 
-    filters, 
+    filters,
+    debouncedSearch,
     updateFilter, 
     toggleArrayValue, 
     clearFilters, 
@@ -37,10 +38,10 @@ export default function AdminPrecosLista() {
   const filteredMercados = useMemo(() => {
     let result = [...mercadosLocais];
 
-    // Aplicar busca
-    if (filters.search) {
+    // Aplicar busca com debounce
+    if (debouncedSearch) {
       result = result.filter(m =>
-        m.nome.toLowerCase().includes(filters.search.toLowerCase())
+        m.nome.toLowerCase().includes(debouncedSearch.toLowerCase())
       );
     }
 
@@ -55,7 +56,7 @@ export default function AdminPrecosLista() {
     }
 
     return result;
-  }, [filters]);
+  }, [filters, debouncedSearch]);
 
   return (
     <ResponsiveLayout

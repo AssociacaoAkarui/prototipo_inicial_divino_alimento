@@ -33,7 +33,8 @@ const UsuarioIndex = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { 
-    filters, 
+    filters,
+    debouncedSearch,
     updateFilter, 
     toggleArrayValue, 
     clearFilters, 
@@ -63,10 +64,10 @@ const UsuarioIndex = () => {
   const filteredUsers = useMemo(() => {
     let result = [...usuarios];
 
-    if (filters.search) {
+    if (debouncedSearch) {
       result = result.filter(usuario =>
-        usuario.nomeCompleto.toLowerCase().includes(filters.search.toLowerCase()) ||
-        usuario.email.toLowerCase().includes(filters.search.toLowerCase())
+        usuario.nomeCompleto.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        usuario.email.toLowerCase().includes(debouncedSearch.toLowerCase())
       );
     }
 
@@ -83,7 +84,7 @@ const UsuarioIndex = () => {
     }
 
     return result;
-  }, [usuarios, filters]);
+  }, [usuarios, filters, debouncedSearch]);
 
   const handleEdit = (id: string) => {
     navigate(`/usuario/${id}`);
