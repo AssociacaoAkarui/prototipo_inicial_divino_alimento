@@ -160,6 +160,7 @@ const AdminProdutosComercializaveis = () => {
               resultCount={filteredProdutos.length}
               hasActiveFilters={hasActiveFilters()}
               filtersOpen={isOpen}
+              searchPlaceholder="Buscar produto comercializável por nome…"
             />
           </div>
           <Button onClick={handleAddProduto} className="whitespace-nowrap">
