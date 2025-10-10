@@ -60,10 +60,6 @@ export default function AdminCicloIndex() {
       result = result.filter(ciclo => filters.status.includes(ciclo.status));
     }
 
-    if (filters.tipoVenda.length > 0) {
-      result = result.filter(ciclo => ciclo.tipo_venda && filters.tipoVenda.includes(ciclo.tipo_venda));
-    }
-
     return result.sort((a, b) => new Date(b.inicio_ofertas).getTime() - new Date(a.inicio_ofertas).getTime());
   }, [ciclos, filters]);
 
@@ -154,8 +150,26 @@ export default function AdminCicloIndex() {
       </div>
 
       <FiltersPanel open={isOpen} onOpenChange={setIsOpen} onApply={() => {}} onClear={clearFilters}>
-        <div className="space-y-4"><Label>Status</Label><div className="space-y-2">{['ativo', 'inativo'].map((status) => (<div key={status} className="flex items-center space-x-2"><Checkbox id={`status-${status}`} checked={filters.status.includes(status)} onCheckedChange={() => toggleArrayValue('status', status)} /><label htmlFor={`status-${status}`} className="text-sm font-medium cursor-pointer capitalize">{status === 'ativo' ? 'Ativo' : 'Inativo'}</label></div>))}</div></div>
-        <div className="space-y-4"><Label>Tipo de Venda</Label><div className="space-y-2">{['cesta', 'lote', 'venda_direta'].map((tipo) => (<div key={tipo} className="flex items-center space-x-2"><Checkbox id={`tipo-${tipo}`} checked={filters.tipoVenda.includes(tipo)} onCheckedChange={() => toggleArrayValue('tipoVenda', tipo)} /><label htmlFor={`tipo-${tipo}`} className="text-sm font-medium cursor-pointer">{tipo === 'cesta' ? 'Cesta' : tipo === 'lote' ? 'Lote' : 'Venda Direta'}</label></div>))}</div></div>
+        <div className="space-y-4">
+          <Label>Status</Label>
+          <div className="space-y-2">
+            {['ativo', 'inativo'].map((status) => (
+              <div key={status} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`status-${status}`}
+                  checked={filters.status.includes(status)}
+                  onCheckedChange={() => toggleArrayValue('status', status)}
+                />
+                <label
+                  htmlFor={`status-${status}`}
+                  className="text-sm font-medium cursor-pointer capitalize"
+                >
+                  {status === 'ativo' ? 'Ativo' : 'Inativo'}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
       </FiltersPanel>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Confirmar exclusão</AlertDialogTitle><AlertDialogDescription>Deseja realmente excluir este ciclo? Esta ação não pode ser desfeita.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>Cancelar</AlertDialogCancel><AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Excluir Ciclo</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>

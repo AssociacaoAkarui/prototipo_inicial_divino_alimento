@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, DollarSign } from "lucide-react";
+import { ArrowLeft, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,17 +15,47 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ResponsiveLayout } from "@/components/layout/ResponsiveLayout";
+import { FiltersBar } from "@/components/admin/FiltersBar";
+import { FiltersPanel } from "@/components/admin/FiltersPanel";
+import { useFilters } from "@/hooks/useFilters";
 import { mercadosLocais } from "@/data/mercados-locais";
 
 export default function AdminPrecosLista() {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
+  const { 
+    filters, 
+    updateFilter, 
+    toggleArrayValue, 
+    clearFilters, 
+    clearFilterGroup,
+    getActiveChips, 
+    hasActiveFilters,
+    isOpen,
+    setIsOpen 
+  } = useFilters('/admin/precos');
 
   const filteredMercados = useMemo(() => {
-    return mercadosLocais.filter(m =>
-      m.nome.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
+    let result = [...mercadosLocais];
+
+    // Aplicar busca
+    if (filters.search) {
+      result = result.filter(m =>
+        m.nome.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    // Aplicar filtro de status
+    if (filters.status.length > 0) {
+      result = result.filter(m => filters.status.includes(m.status));
+    }
+
+    // Aplicar filtro de tipo
+    if (filters.tipo.length > 0) {
+      result = result.filter(m => filters.tipo.includes(m.tipo));
+    }
+
+    return result;
+  }, [filters]);
 
   return (
     <ResponsiveLayout
@@ -50,16 +81,17 @@ export default function AdminPrecosLista() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar mercado por nome..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        {/* Search and Filters */}
+        <FiltersBar
+          searchValue={filters.search}
+          onSearchChange={(value) => updateFilter('search', value)}
+          onFiltersClick={() => setIsOpen(true)}
+          activeChips={getActiveChips()}
+          onRemoveChip={clearFilterGroup}
+          resultCount={filteredMercados.length}
+          hasActiveFilters={hasActiveFilters()}
+          filtersOpen={isOpen}
+        />
 
         {/* Desktop Table */}
         <Card className="hidden md:block">
@@ -143,12 +175,71 @@ export default function AdminPrecosLista() {
 
         {filteredMercados.length === 0 && (
           <Card>
-            <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">Nenhum mercado encontrado</p>
+            <CardContent className="p-12 text-center space-y-4">
+              <p className="text-muted-foreground">
+                {hasActiveFilters() 
+                  ? 'Sem resultados para os filtros selecionados.' 
+                  : 'Nenhum mercado encontrado'}
+              </p>
+              {hasActiveFilters() && (
+                <Button variant="outline" onClick={clearFilters}>
+                  Limpar filtros
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
       </div>
+
+      {/* Painel de Filtros */}
+      <FiltersPanel
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        onApply={() => {}}
+        onClear={clearFilters}
+      >
+        <div className="space-y-4">
+          <Label>Status</Label>
+          <div className="space-y-2">
+            {['ativo', 'inativo'].map((status) => (
+              <div key={status} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`status-${status}`}
+                  checked={filters.status.includes(status)}
+                  onCheckedChange={() => toggleArrayValue('status', status)}
+                />
+                <label
+                  htmlFor={`status-${status}`}
+                  className="text-sm font-medium cursor-pointer capitalize"
+                >
+                  {status === 'ativo' ? 'Ativo' : 'Inativo'}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <Label>Tipo de Mercado</Label>
+          <div className="space-y-2">
+            {['Cestas', 'Lote', 'Venda Direta'].map((tipo) => (
+              <div key={tipo} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`tipo-${tipo}`}
+                  checked={filters.tipo.includes(tipo)}
+                  onCheckedChange={() => toggleArrayValue('tipo', tipo)}
+                />
+                <label
+                  htmlFor={`tipo-${tipo}`}
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  {tipo}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FiltersPanel>
     </ResponsiveLayout>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,9 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import ResponsiveLayout from '@/components/layout/ResponsiveLayout';
+import { FiltersBar } from '@/components/admin/FiltersBar';
+import { FiltersPanel } from '@/components/admin/FiltersPanel';
+import { useFilters } from '@/hooks/useFilters';
 import { ArrowLeft, Plus, Store, MapPin, Package, Trash2, Edit, Save, Search, Filter, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -68,6 +71,20 @@ const mockMarkets: MarketType[] = [
 ];
 
 const AdminMercados = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { 
+    filters, 
+    updateFilter, 
+    toggleArrayValue, 
+    clearFilters, 
+    clearFilterGroup,
+    getActiveChips, 
+    hasActiveFilters,
+    isOpen,
+    setIsOpen 
+  } = useFilters('/admin/mercados');
+
   const [markets, setMarkets] = useState<MarketType[]>(mockMarkets);
   const [selectedMarket, setSelectedMarket] = useState<MarketType | null>(null);
   const [isEditingMarket, setIsEditingMarket] = useState(false);
@@ -83,9 +100,6 @@ const AdminMercados = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [marketToDelete, setMarketToDelete] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
   const addDeliveryPoint = () => {
     setNewMarket(prev => ({
@@ -152,10 +166,31 @@ const AdminMercados = () => {
     setIsEditingMarket(false);
   };
 
-  const filteredMarkets = markets.filter(market =>
-    market.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    market.deliveryPoints.some(point => point.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredMarkets = useMemo(() => {
+    let result = [...markets];
+
+    // Aplicar busca
+    if (filters.search) {
+      result = result.filter(market =>
+        market.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        market.deliveryPoints.some(point => point.toLowerCase().includes(filters.search.toLowerCase()))
+      );
+    }
+
+    // Aplicar filtro de status
+    if (filters.status.length > 0) {
+      result = result.filter(market => filters.status.includes(market.status));
+    }
+
+    // Aplicar filtro de tipo
+    if (filters.tipo.length > 0) {
+      result = result.filter(market =>
+        market.types.some(type => filters.tipo.includes(type))
+      );
+    }
+
+    return result;
+  }, [markets, filters]);
 
   const saveMarket = () => {
     // Validações
@@ -308,16 +343,17 @@ const AdminMercados = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar mercados..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+                {/* Filtros e Busca */}
+                <FiltersBar
+                  searchValue={filters.search}
+                  onSearchChange={(value) => updateFilter('search', value)}
+                  onFiltersClick={() => setIsOpen(true)}
+                  activeChips={getActiveChips()}
+                  onRemoveChip={clearFilterGroup}
+                  resultCount={filteredMarkets.length}
+                  hasActiveFilters={hasActiveFilters()}
+                  filtersOpen={isOpen}
+                />
 
                 {/* Add Button for Desktop and Mobile */}
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -407,11 +443,18 @@ const AdminMercados = () => {
 
               {filteredMarkets.length === 0 && (
                 <Card>
-                  <CardContent className="p-8 text-center">
+                  <CardContent className="p-8 text-center space-y-4">
                     <Store className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                     <p className="text-muted-foreground">
-                      {searchQuery ? 'Nenhum mercado encontrado' : 'Nenhum mercado cadastrado'}
+                      {hasActiveFilters() 
+                        ? 'Sem resultados para os filtros selecionados.' 
+                        : 'Nenhum mercado cadastrado'}
                     </p>
+                    {hasActiveFilters() && (
+                      <Button variant="outline" onClick={clearFilters}>
+                        Limpar filtros
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -944,6 +987,56 @@ const AdminMercados = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Painel de Filtros */}
+      <FiltersPanel
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        onApply={() => {}}
+        onClear={clearFilters}
+      >
+        <div className="space-y-4">
+          <Label>Status</Label>
+          <div className="space-y-2">
+            {['ativo', 'inativo'].map((status) => (
+              <div key={status} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`status-${status}`}
+                  checked={filters.status.includes(status)}
+                  onCheckedChange={() => toggleArrayValue('status', status)}
+                />
+                <label
+                  htmlFor={`status-${status}`}
+                  className="text-sm font-medium cursor-pointer capitalize"
+                >
+                  {status === 'ativo' ? 'Ativo' : 'Inativo'}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <Label>Tipo de Mercado</Label>
+          <div className="space-y-2">
+            {marketTypeOptions.map((option) => (
+              <div key={option.value} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`tipo-${option.value}`}
+                  checked={filters.tipo.includes(option.value)}
+                  onCheckedChange={() => toggleArrayValue('tipo', option.value)}
+                />
+                <label
+                  htmlFor={`tipo-${option.value}`}
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  {option.label}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+      </FiltersPanel>
     </ResponsiveLayout>
   );
 };
